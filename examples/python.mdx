@@ -1,0 +1,423 @@
+---
+title: 'Python Examples'
+description: 'Ready-to-use Python code examples for the Influship API'
+---
+
+# Python Examples
+
+Complete Python examples for integrating with the Influship API using modern async/await syntax and proper error handling.
+
+## Setup
+
+### Install Dependencies
+
+```bash
+pip install httpx python-dotenv
+# or
+pip install requests python-dotenv
+```
+
+### Environment Variables
+
+Create a `.env` file:
+
+```bash
+INFLUSHIP_API_KEY=your_api_key_here
+```
+
+## Basic API Client
+
+```python
+# influship_client.py
+import httpx
+import os
+from typing import Dict, Any, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class InflushipClient:
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv('INFLUSHIP_API_KEY')
+        if not self.api_key:
+            raise ValueError("API key is required")
+        
+        self.base_url = "https://api.influship.com"
+        self.headers = {
+            "X-API-Key": self.api_key,
+            "Content-Type": "application/json"
+        }
+
+    async def request(self, endpoint: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+        url = f"{self.base_url}{endpoint}"
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.request(
+                    method=method,
+                    url=url,
+                    headers=self.headers,
+                    **kwargs
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                error_data = e.response.json() if e.response.content else {}
+                raise Exception(f"API Error: {error_data.get('error', {}).get('message', 'Unknown error')}")
+
+    async def health(self) -> Dict[str, Any]:
+        """Check API health"""
+        return await self.request("/health")
+
+    async def search_creators(self, query: str, filters: Dict[str, Any] = None, limit: int = 20) -> Dict[str, Any]:
+        """Search for creators"""
+        data = {"query": query}
+        if filters:
+            data["filters"] = filters
+        if limit:
+            data["limit"] = limit
+        
+        return await self.request("/v1/search", method="POST", json=data)
+
+    async def get_creator(self, creator_id: str, mode: str = "lite") -> Dict[str, Any]:
+        """Get creator details"""
+        return await self.request(f"/v1/creators/{creator_id}?mode={mode}")
+
+    async def analyze_post(self, platform: str, url: str, mode: str = "lite") -> Dict[str, Any]:
+        """Analyze a post"""
+        data = {
+            "platform": platform,
+            "url": url,
+            "mode": mode
+        }
+        return await self.request("/v1/posts/analyze", method="POST", json=data)
+```
+
+## Usage Examples
+
+### 1. Health Check
+
+```python
+import asyncio
+from influship_client import InflushipClient
+
+async def check_health():
+    client = InflushipClient()
+    
+    try:
+        health = await client.health()
+        print(f"API Status: {health}")
+    except Exception as e:
+        print(f"Health check failed: {e}")
+
+# Run the health check
+asyncio.run(check_health())
+```
+
+### 2. Search for Creators
+
+```python
+async def search_fitness_influencers():
+    client = InflushipClient()
+    
+    try:
+        results = await client.search_creators(
+            query="fitness influencers with high engagement",
+            filters={
+                "min_followers": 10000,
+                "engagement_rate": {"min": 0.03},
+                "platforms": ["instagram"]
+            },
+            limit=10
+        )
+        
+        print(f"Found {len(results['items'])} creators")
+        for creator in results['items']:
+            print(f"{creator['name']} (@{creator['username']}) - {creator['followers']} followers")
+        
+        return results
+    except Exception as e:
+        print(f"Search failed: {e}")
+
+# Run the search
+asyncio.run(search_fitness_influencers())
+```
+
+### 3. Get Detailed Creator Information
+
+```python
+async def get_creator_details(creator_id: str):
+    client = InflushipClient()
+    
+    try:
+        creator = await client.get_creator(creator_id, mode="detailed")
+        
+        print("Creator Details:")
+        print(f"Name: {creator['name']}")
+        print(f"Username: {creator['username']}")
+        print(f"Followers: {creator['followers']:,}")
+        print(f"Engagement Rate: {creator['engagement_rate']:.2%}")
+        print(f"Bio: {creator.get('bio', 'N/A')}")
+        
+        if creator.get('contact', {}).get('email'):
+            print(f"Email: {creator['contact']['email']}")
+        
+        return creator
+    except Exception as e:
+        print(f"Failed to get creator details: {e}")
+
+# Usage
+creator_id = "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+asyncio.run(get_creator_details(creator_id))
+```
+
+### 4. Analyze Instagram Post
+
+```python
+async def analyze_post(post_url: str):
+    client = InflushipClient()
+    
+    try:
+        analysis = await client.analyze_post("instagram", post_url, mode="detailed")
+        
+        print("Post Analysis:")
+        print(f"Likes: {analysis['likes']:,}")
+        print(f"Comments: {analysis['comments']:,}")
+        print(f"Engagement Rate: {analysis['engagement_rate']:.2%}")
+        
+        if analysis.get('content_analysis'):
+            content = analysis['content_analysis']
+            print(f"Topics: {', '.join(content.get('topics', []))}")
+            print(f"Hashtags: {', '.join(content.get('hashtags', []))}")
+        
+        return analysis
+    except Exception as e:
+        print(f"Post analysis failed: {e}")
+
+# Usage
+post_url = "https://instagram.com/p/POST_ID"
+asyncio.run(analyze_post(post_url))
+```
+
+### 5. Batch Creator Enrichment
+
+```python
+async def enrich_multiple_creators(creator_ids: list):
+    client = InflushipClient()
+    results = []
+    
+    # Process in batches to avoid rate limits
+    batch_size = 5
+    for i in range(0, len(creator_ids), batch_size):
+        batch = creator_ids[i:i + batch_size]
+        
+        tasks = []
+        for creator_id in batch:
+            task = client.get_creator(creator_id, mode="detailed")
+            tasks.append(task)
+        
+        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        for creator_id, result in zip(batch, batch_results):
+            if isinstance(result, Exception):
+                results.append({"id": creator_id, "success": False, "error": str(result)})
+            else:
+                results.append({"id": creator_id, "success": True, "data": result})
+        
+        # Add delay between batches
+        if i + batch_size < len(creator_ids):
+            await asyncio.sleep(1)
+    
+    return results
+
+# Usage
+creator_ids = [
+    "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W",
+    "cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X"
+]
+
+results = asyncio.run(enrich_multiple_creators(creator_ids))
+for result in results:
+    if result["success"]:
+        print(f"✅ {result['id']}: {result['data']['name']}")
+    else:
+        print(f"❌ {result['id']}: {result['error']}")
+```
+
+### 6. Error Handling with Retry Logic
+
+```python
+import asyncio
+from typing import Optional
+
+async def request_with_retry(
+    client: InflushipClient,
+    endpoint: str,
+    method: str = "GET",
+    max_retries: int = 3,
+    **kwargs
+) -> Dict[str, Any]:
+    last_error = None
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            return await client.request(endpoint, method, **kwargs)
+        except Exception as error:
+            last_error = error
+            
+            # Don't retry on authentication errors
+            if "unauthorized" in str(error).lower() or "forbidden" in str(error).lower():
+                raise error
+            
+            # Don't retry on validation errors
+            if "validation_error" in str(error).lower():
+                raise error
+            
+            if attempt < max_retries:
+                delay = 2 ** attempt  # Exponential backoff
+                print(f"Attempt {attempt} failed, retrying in {delay}s...")
+                await asyncio.sleep(delay)
+    
+    raise last_error
+
+# Usage
+async def search_with_retry(query: str):
+    client = InflushipClient()
+    
+    try:
+        results = await request_with_retry(
+            client,
+            "/v1/search",
+            method="POST",
+            json={"query": query}
+        )
+        return results
+    except Exception as e:
+        print(f"Search failed after retries: {e}")
+        raise
+
+# Run with retry logic
+asyncio.run(search_with_retry("fitness influencers"))
+```
+
+### 7. Complete Workflow Example
+
+```python
+async def find_and_analyze_creators():
+    client = InflushipClient()
+    
+    try:
+        # Step 1: Search for creators
+        print("🔍 Searching for fitness influencers...")
+        search_results = await client.search_creators(
+            query="fitness influencers with high engagement",
+            limit=5
+        )
+        
+        if not search_results['items']:
+            print("No creators found")
+            return
+        
+        # Step 2: Get detailed information for each creator
+        print(f"📊 Analyzing {len(search_results['items'])} creators...")
+        creators = []
+        
+        for item in search_results['items']:
+            try:
+                creator = await client.get_creator(item['id'], mode="detailed")
+                creators.append(creator)
+                print(f"✅ Analyzed: {creator['name']} ({creator['followers']:,} followers)")
+            except Exception as e:
+                print(f"❌ Failed to analyze: {item['name']} - {e}")
+        
+        # Step 3: Sort by engagement rate
+        creators.sort(key=lambda x: x['engagement_rate'], reverse=True)
+        
+        # Step 4: Display results
+        print("\n🏆 Top Creators by Engagement:")
+        for i, creator in enumerate(creators, 1):
+            print(f"{i}. {creator['name']} (@{creator['username']})")
+            print(f"   Followers: {creator['followers']:,}")
+            print(f"   Engagement: {creator['engagement_rate']:.2%}")
+            print(f"   Bio: {creator.get('bio', 'N/A')}")
+            print()
+        
+        return creators
+    except Exception as e:
+        print(f"Workflow failed: {e}")
+
+# Run the complete workflow
+asyncio.run(find_and_analyze_creators())
+```
+
+## Synchronous Version (using requests)
+
+If you prefer synchronous code, here's a version using the `requests` library:
+
+```python
+# influship_client_sync.py
+import requests
+import os
+from typing import Dict, Any, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class InflushipClientSync:
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv('INFLUSHIP_API_KEY')
+        if not self.api_key:
+            raise ValueError("API key is required")
+        
+        self.base_url = "https://api.influship.com"
+        self.headers = {
+            "X-API-Key": self.api_key,
+            "Content-Type": "application/json"
+        }
+
+    def request(self, endpoint: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+        url = f"{self.base_url}{endpoint}"
+        
+        try:
+            response = requests.request(
+                method=method,
+                url=url,
+                headers=self.headers,
+                **kwargs
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as e:
+            try:
+                error_data = e.response.json()
+                error_message = error_data.get('error', {}).get('message', 'Unknown error')
+            except:
+                error_message = str(e)
+            raise Exception(f"API Error: {error_message}")
+
+    def health(self) -> Dict[str, Any]:
+        """Check API health"""
+        return self.request("/health")
+
+    def search_creators(self, query: str, filters: Dict[str, Any] = None, limit: int = 20) -> Dict[str, Any]:
+        """Search for creators"""
+        data = {"query": query}
+        if filters:
+            data["filters"] = filters
+        if limit:
+            data["limit"] = limit
+        
+        return self.request("/v1/search", method="POST", json=data)
+
+# Usage
+client = InflushipClientSync()
+health = client.health()
+print(health)
+```
+
+## Related Examples
+
+- [JavaScript Examples](/examples/javascript) - Node.js and browser examples
+- [cURL Examples](/examples/curl) - Command-line examples
+- [Authentication Guide](/guides/authentication) - API key setup and security
+- [Error Handling Guide](/guides/error-handling) - Comprehensive error handling

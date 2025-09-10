@@ -1,0 +1,488 @@
+---
+title: 'cURL Examples'
+description: 'Command-line examples for testing the Influship API'
+---
+
+# cURL Examples
+
+Ready-to-use cURL commands for testing the Influship API from the command line.
+
+## Setup
+
+### Environment Variables
+
+Set your API key as an environment variable:
+
+```bash
+export INFLUSHIP_API_KEY="your_api_key_here"
+```
+
+Or create a `.env` file and source it:
+
+```bash
+echo "INFLUSHIP_API_KEY=your_api_key_here" > .env
+source .env
+```
+
+## Basic Commands
+
+### 1. Health Check
+
+Test if the API is working:
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  https://api.influship.com/health
+```
+
+Expected response:
+```json
+{
+  "ok": true,
+  "timestamp": "2025-01-15T10:30:00Z",
+  "uptime": 12345,
+  "version": "0.1.0"
+}
+```
+
+### 2. Test Authentication
+
+Test without API key to see authentication error:
+
+```bash
+curl https://api.influship.com/health
+```
+
+Expected response:
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "API key is required"
+  }
+}
+```
+
+## Search Examples
+
+### 3. Basic Creator Search
+
+```bash
+curl -X POST https://api.influship.com/v1/search \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "fitness influencers with high engagement"
+  }'
+```
+
+### 4. Advanced Search with Filters
+
+```bash
+curl -X POST https://api.influship.com/v1/search \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "fitness influencers with high engagement",
+    "filters": {
+      "min_followers": 10000,
+      "engagement_rate": {
+        "min": 0.03
+      },
+      "platforms": ["instagram"],
+      "verified": true
+    },
+    "limit": 10
+  }'
+```
+
+### 5. Search with Pagination
+
+```bash
+# First page
+curl -X POST https://api.influship.com/v1/search \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "fitness influencers",
+    "limit": 5
+  }'
+
+# Next page (use cursor from previous response)
+curl -X POST https://api.influship.com/v1/search \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "fitness influencers",
+    "limit": 5,
+    "cursor": "eyJvZmZzZXQiOjV9"
+  }'
+```
+
+## Creator Enrichment Examples
+
+### 6. Get Creator by ID (Lite Mode)
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/creators/cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W?mode=lite"
+```
+
+### 7. Get Creator by ID (Detailed Mode)
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/creators/cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W?mode=detailed"
+```
+
+### 8. Get Creator by Platform Handle
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/creators/instagram/username?mode=detailed"
+```
+
+### 9. Get Profile by Handle
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/profiles/instagram/username?mode=detailed"
+```
+
+## Post Analysis Examples
+
+### 10. Analyze Post by URL
+
+```bash
+curl -X POST https://api.influship.com/v1/posts/analyze \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "instagram",
+    "url": "https://instagram.com/p/POST_ID",
+    "mode": "detailed"
+  }'
+```
+
+### 11. Analyze Post by ID
+
+```bash
+curl -X POST https://api.influship.com/v1/posts/analyze \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "instagram",
+    "id": "POST_ID",
+    "mode": "detailed"
+  }'
+```
+
+## Lookalike Search Examples
+
+### 12. Find Similar Creators
+
+```bash
+curl -X POST https://api.influship.com/v1/lookalike \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "seed_creators": [
+      {
+        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+      }
+    ],
+    "limit": 10
+  }'
+```
+
+### 13. Lookalike with Multiple Seeds
+
+```bash
+curl -X POST https://api.influship.com/v1/lookalike \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "seed_creators": [
+      {
+        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+      },
+      {
+        "id": "cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X"
+      }
+    ],
+    "limit": 20
+  }'
+```
+
+## Match Scoring Examples
+
+### 14. Score Creators for Campaign
+
+```bash
+curl -X POST https://api.influship.com/v1/match \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "creators": [
+      {
+        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+      },
+      {
+        "id": "cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X"
+      }
+    ],
+    "search_intent": {
+      "query": "sustainable fashion campaign",
+      "context": "Looking for eco-conscious fashion influencers"
+    }
+  }'
+```
+
+## Job Management Examples
+
+### 15. List Jobs
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/jobs?limit=10"
+```
+
+### 16. Get Job Status
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/jobs/job_123456789"
+```
+
+### 17. Cancel Job
+
+```bash
+curl -X DELETE \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/jobs/job_123456789"
+```
+
+## Canonical Endpoint Examples
+
+### 18. Batch Enrichment (Planned)
+
+```bash
+curl -X POST https://api.influship.com/v1/enrich \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "targets": [
+      {
+        "type": "creator",
+        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+      },
+      {
+        "type": "profile",
+        "id": "instagram:username"
+      }
+    ],
+    "mode": "detailed"
+  }'
+```
+
+### 19. Batch Brand Safety (Planned)
+
+```bash
+curl -X POST https://api.influship.com/v1/brand-safety \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "targets": [
+      {
+        "type": "creator",
+        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+      },
+      {
+        "type": "post",
+        "id": "instagram:post_id"
+      }
+    ],
+    "options": {
+      "include_evidence": true,
+      "analysis_depth": "comprehensive"
+    }
+  }'
+```
+
+### 20. Batch Post Analysis (Planned)
+
+```bash
+curl -X POST https://api.influship.com/v1/analyze \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "targets": [
+      {
+        "type": "post",
+        "id": "instagram:post_id_1"
+      },
+      {
+        "type": "post",
+        "url": "https://instagram.com/p/post_id_2"
+      }
+    ],
+    "mode": "detailed"
+  }'
+```
+
+## Error Handling Examples
+
+### 21. Handle Rate Limiting
+
+```bash
+# Check rate limit headers
+curl -I -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  https://api.influship.com/v1/search
+
+# Response headers will include:
+# RateLimit-Limit: 1000
+# RateLimit-Remaining: 999
+# RateLimit-Reset: 1640995200
+```
+
+### 22. Verbose Output for Debugging
+
+```bash
+curl -v -X POST https://api.influship.com/v1/search \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "test query"
+  }'
+```
+
+### 23. Save Response to File
+
+```bash
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  "https://api.influship.com/v1/creators/cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W" \
+  -o creator_response.json
+```
+
+## Testing Scripts
+
+### 24. Simple Test Script
+
+Create a test script to verify your API key:
+
+```bash
+#!/bin/bash
+# test_api.sh
+
+API_KEY="${INFLUSHIP_API_KEY}"
+
+if [ -z "$API_KEY" ]; then
+    echo "Error: INFLUSHIP_API_KEY environment variable not set"
+    exit 1
+fi
+
+echo "Testing Influship API..."
+
+# Test health endpoint
+echo "1. Testing health endpoint..."
+health_response=$(curl -s -H "X-API-Key: $API_KEY" https://api.influship.com/health)
+echo "Health response: $health_response"
+
+# Test search endpoint
+echo "2. Testing search endpoint..."
+search_response=$(curl -s -X POST https://api.influship.com/v1/search \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "test query", "limit": 1}')
+echo "Search response: $search_response"
+
+echo "API test completed!"
+```
+
+Make it executable and run:
+
+```bash
+chmod +x test_api.sh
+./test_api.sh
+```
+
+### 25. Batch Testing Script
+
+```bash
+#!/bin/bash
+# batch_test.sh
+
+API_KEY="${INFLUSHIP_API_KEY}"
+BASE_URL="https://api.influship.com"
+
+# Test multiple endpoints
+endpoints=(
+    "GET /health"
+    "POST /v1/search"
+    "GET /v1/creators/test_id"
+)
+
+for endpoint in "${endpoints[@]}"; do
+    method=$(echo $endpoint | cut -d' ' -f1)
+    path=$(echo $endpoint | cut -d' ' -f2)
+    
+    echo "Testing $method $path..."
+    
+    if [ "$method" = "GET" ]; then
+        curl -s -H "X-API-Key: $API_KEY" "$BASE_URL$path" | jq .
+    else
+        curl -s -X POST -H "X-API-Key: $API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"query": "test"}' "$BASE_URL$path" | jq .
+    fi
+    
+    echo "---"
+done
+```
+
+## Tips and Best Practices
+
+### Use jq for JSON Formatting
+
+Install `jq` for better JSON output:
+
+```bash
+# macOS
+brew install jq
+
+# Ubuntu/Debian
+sudo apt-get install jq
+
+# Then use it:
+curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  https://api.influship.com/health | jq .
+```
+
+### Handle Rate Limits
+
+```bash
+# Check rate limit headers and implement backoff
+rate_limit_remaining=$(curl -s -I -H "X-API-Key: $API_KEY" \
+  https://api.influship.com/v1/search | grep -i "ratelimit-remaining" | cut -d' ' -f2)
+
+if [ "$rate_limit_remaining" -lt 10 ]; then
+    echo "Rate limit low, waiting..."
+    sleep 60
+fi
+```
+
+### Use Aliases for Common Commands
+
+Add to your `~/.bashrc` or `~/.zshrc`:
+
+```bash
+alias influship-health='curl -H "X-API-Key: $INFLUSHIP_API_KEY" https://api.influship.com/health'
+alias influship-search='curl -X POST -H "X-API-Key: $INFLUSHIP_API_KEY" -H "Content-Type: application/json" https://api.influship.com/v1/search'
+```
+
+## Related Examples
+
+- [JavaScript Examples](/examples/javascript) - Node.js and browser examples
+- [Python Examples](/examples/python) - Python SDK examples
+- [Authentication Guide](/guides/authentication) - API key setup and security
+- [Error Handling Guide](/guides/error-handling) - Comprehensive error handling

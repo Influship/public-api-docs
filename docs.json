@@ -1,55 +1,87 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Influship API",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#8B5CF6",
+    "light": "#A78BFA",
+    "dark": "#7C3AED"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Getting Started",
         "groups": [
           {
-            "group": "Getting started",
-            "pages": ["index", "quickstart", "development"]
+            "group": "Introduction",
+            "pages": ["index", "quickstart", "implementation-status"]
           },
           {
-            "group": "Customization",
-            "pages": ["essentials/settings", "essentials/navigation"]
+            "group": "Authentication",
+            "pages": ["guides/authentication", "guides/api-keys"]
           },
           {
-            "group": "Writing content",
+            "group": "Rate Limits & Billing",
+            "pages": ["guides/rate-limits", "guides/billing"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "api-reference/introduction",
+              "api-reference/data-formats"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Endpoints",
+            "openapi": "https://api.influship.com/openapi.yaml"
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Tutorials",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/finding-influencers",
+              "guides/analyzing-content",
+              "guides/brand-safety-check"
+            ]
+          },
+          {
+            "group": "Code Examples",
+            "pages": ["examples/javascript", "examples/python", "examples/curl"]
+          },
+          {
+            "group": "Best Practices",
+            "pages": [
+              "guides/error-handling",
+              "guides/performance-optimization",
+              "guides/webhook-integration"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Resources",
         "groups": [
           {
-            "group": "API documentation",
-            "pages": ["api-reference/introduction"]
+            "group": "Support",
+            "pages": [
+              "support/faq",
+              "support/troubleshooting",
+              "support/contact"
+            ]
           },
           {
-            "group": "Endpoints",
-            "openapi": "https://api.influship.com/openapi.yaml"
+            "group": "Changelog",
+            "pages": ["changelog/releases", "changelog/roadmap"]
           }
         ]
       }
@@ -57,19 +89,19 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "API Status",
+          "href": "https://status.influship.com",
+          "icon": "chart-line"
         },
         {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
+          "anchor": "Dashboard",
+          "href": "https://dashboard.influship.com",
+          "icon": "chart-bar"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Support",
+          "href": "mailto:support@influship.com",
+          "icon": "envelope"
         }
       ]
     }
@@ -81,14 +113,18 @@
   "navbar": {
     "links": [
       {
+        "label": "Status",
+        "href": "https://status.influship.com"
+      },
+      {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@influship.com"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get API Key",
+      "href": "https://dashboard.influship.com"
     }
   },
   "contextual": {
@@ -105,9 +141,9 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/influship",
+      "github": "https://github.com/influship",
+      "linkedin": "https://linkedin.com/company/influship"
     }
   }
 }

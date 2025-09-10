@@ -1,80 +1,236 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: 'Quickstart'
+description: 'Get up and running with the Influship API in under 10 minutes'
 ---
 
-## Get started in three steps
+# Quickstart Guide
 
-Get your documentation site running locally and make your first customization.
+Welcome to the Influship API! This guide will help you get started with our AI-powered influencer discovery and analysis platform.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+Before you begin, make sure you have:
 
-### Step 2: Deploy your changes
+- A valid email address for account creation
+- Basic knowledge of REST APIs and JSON
+- A code editor or API testing tool (we recommend [Postman](https://postman.com) or [Insomnia](https://insomnia.rest/))
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+## Step 1: Get Your API Key
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<Steps>
+<Step title="Create an account">
+  Visit the [Influship Dashboard](https://dashboard.influship.com) and sign up for a new account.
+</Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+<Step title="Generate an API key">
+  Once logged in, navigate to the "API Keys" section and click "Generate New Key".
+  
+  <Warning>
+  Keep your API key secure! Never share it publicly or commit it to version control.
+  </Warning>
+</Step>
 
-### Step 3: Go live
+<Step title="Copy your API key">
+  Copy the generated API key and store it securely. You'll need it for all API requests.
+</Step>
+</Steps>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+## Step 2: Test the API
 
-## Next steps
+<Steps>
+<Step title="Test the health endpoint">
+  Start with a simple health check to verify your API key works:
+  
+  ```bash
+  curl -H "X-API-Key: YOUR_API_KEY" \
+    https://api.influship.com/health
+  ```
+  
+  You should receive a response like:
+  
+  ```json
+  {
+    "ok": true,
+    "timestamp": "2025-01-15T10:30:00Z",
+    "uptime": 12345,
+    "version": "0.1.0"
+  }
+  ```
+</Step>
 
-Now that you have your docs running, explore these key features:
+<Step title="Test authentication">
+  Try making a request without an API key to see the authentication error:
+  
+  ```bash
+  curl https://api.influship.com/health
+  ```
+  
+  This should return a 401 Unauthorized error.
+</Step>
+</Steps>
+
+## Step 3: Search for Creators
+
+<Steps>
+<Step title="Make your first search">
+  Now let's search for some creators. Use a natural language query:
+  
+  ```bash
+  curl -X POST https://api.influship.com/v1/search \
+    -H "X-API-Key: YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "query": "fitness influencers with high engagement",
+      "filters": {
+        "min_followers": 10000,
+        "engagement_rate": {
+          "min": 0.03
+        }
+      },
+      "limit": 10
+    }'
+  ```
+</Step>
+
+<Step title="Understand the response">
+  The response will include:
+  - `items`: Array of creator profiles
+  - `filtered_total`: Total number of matching creators
+  - `has_more`: Whether there are more results
+  - `next_cursor`: For pagination
+  
+  Each creator includes:
+  - Basic profile information
+  - Engagement metrics
+  - AI recommendation score and explanation
+  - Content preview
+</Step>
+</Steps>
+
+## Step 4: Enrich Creator Data
+
+<Steps>
+<Step title="Get detailed creator information">
+  Use a creator ID from your search results to get more detailed information:
+  
+  ```bash
+  curl -H "X-API-Key: YOUR_API_KEY" \
+    "https://api.influship.com/v1/creators/CREATOR_ID?mode=detailed"
+  ```
+</Step>
+
+<Step title="Get profile by handle">
+  You can also get creator data by their platform handle:
+  
+  ```bash
+  curl -H "X-API-Key: YOUR_API_KEY" \
+    "https://api.influship.com/v1/creators/instagram/username?mode=detailed"
+  ```
+</Step>
+</Steps>
+
+## Step 5: Analyze Content
+
+<Steps>
+<Step title="Analyze a post">
+  Analyze an Instagram post for content insights:
+  
+  ```bash
+  curl -X POST https://api.influship.com/v1/posts/analyze \
+    -H "X-API-Key: YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "platform": "instagram",
+      "url": "https://instagram.com/p/POST_ID",
+      "mode": "detailed"
+    }'
+  ```
+</Step>
+
+<Step title="Review the analysis">
+  The response includes:
+  - Post metadata (likes, comments, views)
+  - Content analysis (topics, hashtags, mentions)
+  - Brand safety rating
+  - Call-to-action detection
+  - Product mentions
+</Step>
+</Steps>
+
+## Step 6: Match Creators to Campaigns
+
+<Steps>
+<Step title="Score creators for a campaign">
+  Use match scoring to find the best creators for your campaign:
+  
+  ```bash
+  curl -X POST https://api.influship.com/v1/match \
+    -H "X-API-Key: YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "creators": [
+        {"id": "CREATOR_ID_1"},
+        {"id": "CREATOR_ID_2"}
+      ],
+      "search_intent": {
+        "query": "sustainable fashion campaign",
+        "context": "Looking for eco-conscious fashion influencers"
+      }
+    }'
+  ```
+</Step>
+
+<Step title="Review match scores">
+  Each creator gets:
+  - Match score (0.0 to 1.0)
+  - Decision category (good, neutral, avoid)
+  - Detailed explanation
+  - Supporting evidence
+</Step>
+</Steps>
+
+## Next Steps
+
+Now that you've completed the quickstart, here are some recommended next steps:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Read the API Reference" icon="book" href="/api-reference/introduction">
+    Detailed documentation for all endpoints and parameters
+  </Card>
+  <Card title="Check Implementation Status" icon="info-circle" href="/implementation-status">
+    See what's currently working and what's in development
+  </Card>
+  <Card title="Explore Code Examples" icon="code" href="/examples/javascript">
+    Ready-to-use code samples in multiple languages
+  </Card>
+  <Card title="Learn Best Practices" icon="lightbulb" href="/guides/error-handling">
+    Tips for building robust integrations
+  </Card>
 </CardGroup>
 
+## Common Issues
+
+### Authentication Errors
+- **401 Unauthorized**: Check that your API key is correct and included in the `X-API-Key` header
+- **403 Forbidden**: Your API key may be inactive or have insufficient permissions
+
+### Empty Search Results
+- The API requires proper database setup with creator data
+- Check the [Implementation Status](/implementation-status) for current limitations
+
+### Rate Limiting
+- You may hit rate limits if you make too many requests
+- Check the `RateLimit-*` headers in responses
+- Implement exponential backoff for retries
+
+## Need Help?
+
+If you run into any issues:
+
+- **Email**: [support@influship.com](mailto:support@influship.com)
+- **Documentation**: Browse our [API Reference](/api-reference/introduction)
+- **Status**: Check [status.influship.com](https://status.influship.com) for service updates
+
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+This quickstart covers the basic functionality. For advanced features like batch processing and webhooks, see our [Guides](/guides/finding-influencers) section.
 </Note>

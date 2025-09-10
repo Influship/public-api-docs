@@ -1,97 +1,98 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: 'Influship API Documentation'
+description: 'AI-powered influencer discovery, analysis, and brand safety evaluation'
 ---
 
-## Setting up
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.png"
+  alt="Influship API - Light"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.png"
+  alt="Influship API - Dark"
+/>
 
-Get your documentation site up and running in minutes.
+## Welcome to Influship API
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+The Influship API provides AI-powered tools for influencer discovery, content analysis, and brand safety evaluation. Find the perfect creators for your campaigns with intelligent search, analyze their content for brand alignment, and ensure brand safety across all partnerships.
 
-## Make it yours
+## Key Features
 
-Design a docs site that looks great and empowers your users.
+- **🎯 Intelligent Search**: Find influencers using natural language queries with AI-powered recommendations
+- **📊 Content Analysis**: Analyze posts for brand safety, engagement patterns, and content themes
+- **🔍 Creator Enrichment**: Get detailed creator profiles with engagement metrics and contact information
+- **⚡ Match Scoring**: AI-powered creator-campaign matching with detailed explanations
+- **🛡️ Brand Safety**: Comprehensive brand safety evaluation for creators and content
+- **📈 Batch Processing**: Process multiple targets efficiently with our canonical endpoint design
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+## Quick Start
+
+Get started with the Influship API in minutes:
+
+<Steps>
+<Step title="Get your API key">
+  Sign up at the [Influship Dashboard](https://dashboard.influship.com) to get your API key.
+</Step>
+
+<Step title="Make your first request">
+  Test the API with a simple health check:
+  
+  ```bash
+  curl -H "X-API-Key: YOUR_API_KEY" \
+    https://api.influship.com/health
+  ```
+</Step>
+
+<Step title="Search for creators">
+  Find influencers using natural language:
+  
+  ```bash
+  curl -X POST https://api.influship.com/v1/search \
+    -H "X-API-Key: YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"query": "fitness influencers with 100k+ followers"}'
+  ```
+</Step>
+</Steps>
+
+## Implementation Status
+
+<Warning>
+**Current Status**: The API is in active development. Some endpoints are fully functional while others are in various stages of implementation. Check our [Implementation Status](/implementation-status) page for detailed information about what's working now.
+</Warning>
+
+## What's Working Now
+
+<CardGroup cols={2}>
+  <Card title="✅ Health Check" icon="heart" href="/api-reference/health">
+    Basic health monitoring endpoint
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="⚠️ Creator Search" icon="magnifying-glass" href="/api-reference/search-creators">
+    AI-powered search (requires setup)
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="⚠️ Creator Enrichment" icon="user" href="/api-reference/enrich-profiles">
+    Get detailed creator profiles
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="⚠️ Content Analysis" icon="chart-bar" href="/api-reference/analyze-posts">
+    Analyze posts for insights
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Next Steps
 
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Complete setup guide with examples
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Detailed endpoint documentation
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="Code Examples" icon="terminal" href="/examples/javascript">
+    Ready-to-use code samples
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="Implementation Status" icon="info-circle" href="/implementation-status">
+    Current development status
   </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+</CardGroup>

@@ -1,0 +1,392 @@
+---
+title: 'Troubleshooting'
+description: 'Common issues and solutions for the Influship API'
+---
+
+# Troubleshooting
+
+This guide helps you resolve common issues when using the Influship API.
+
+## Authentication Issues
+
+### 401 Unauthorized Error
+
+**Problem**: You're getting a 401 Unauthorized error.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check your API key">
+  Verify that your API key is correct and hasn't been deleted or deactivated.
+</Step>
+
+<Step title="Verify the header name">
+  Make sure you're using `X-API-Key` (not `Authorization`):
+  
+  ```bash
+  # Correct
+  curl -H "X-API-Key: YOUR_API_KEY" https://api.influship.com/health
+  
+  # Incorrect
+  curl -H "Authorization: Bearer YOUR_API_KEY" https://api.influship.com/health
+  ```
+</Step>
+
+<Step title="Check for typos">
+  Ensure there are no extra spaces or characters in your API key.
+</Step>
+
+<Step title="Test with curl">
+  Test your API key with a simple curl command:
+  
+  ```bash
+  curl -H "X-API-Key: YOUR_API_KEY" https://api.influship.com/health
+  ```
+</Step>
+</Steps>
+
+### 403 Forbidden Error
+
+**Problem**: You're getting a 403 Forbidden error.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check account status">
+  Verify that your account is active and not suspended.
+</Step>
+
+<Step title="Verify permissions">
+  Ensure your account has permission for the requested feature.
+</Step>
+
+<Step title="Check plan limits">
+  Verify that you're not exceeding your plan's feature limits.
+</Step>
+</Steps>
+
+## Empty Search Results
+
+### No Creators Found
+
+**Problem**: Search endpoints return empty results.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check implementation status">
+  The search endpoint requires proper database setup. Check our [Implementation Status](/implementation-status) page.
+</Step>
+
+<Step title="Verify database setup">
+  Ensure the database has creator data and Pinecone embeddings are populated.
+</Step>
+
+<Step title="Try different queries">
+  Test with simpler queries to see if the issue is query-specific.
+</Step>
+
+<Step title="Check filters">
+  Verify that your filters aren't too restrictive.
+</Step>
+</Steps>
+
+### Database Connection Issues
+
+**Problem**: Getting database-related errors.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check database schema">
+  Ensure the `external_api` schema and required tables exist.
+</Step>
+
+<Step title="Verify data population">
+  Check that creator data is properly populated in the database.
+</Step>
+
+<Step title="Check Pinecone setup">
+  Verify that Pinecone is configured and has creator embeddings.
+</Step>
+</Steps>
+
+## Rate Limiting Issues
+
+### 429 Too Many Requests
+
+**Problem**: You're hitting rate limits.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check rate limit headers">
+  Look at the `RateLimit-*` headers in the response:
+  
+  ```
+  RateLimit-Limit: 1000
+  RateLimit-Remaining: 0
+  RateLimit-Reset: 1640995200
+  ```
+</Step>
+
+<Step title="Implement backoff">
+  Add delays between requests:
+  
+  ```javascript
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  
+  // Add delay between requests
+  await delay(1000);
+  ```
+</Step>
+
+<Step title="Upgrade your plan">
+  Consider upgrading to a higher tier for increased limits.
+</Step>
+
+<Step title="Batch requests">
+  Use batch endpoints to reduce the number of API calls.
+</Step>
+</Steps>
+
+## Data Quality Issues
+
+### Missing Creator Data
+
+**Problem**: Creator endpoints return incomplete data.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check mode parameter">
+  Use `mode=detailed` for comprehensive data:
+  
+  ```bash
+  curl "https://api.influship.com/v1/creators/ID?mode=detailed"
+  ```
+</Step>
+
+<Step title="Verify data source">
+  Check that the creator data is properly populated in the database.
+</Step>
+
+<Step title="Check creator visibility">
+  Some creators may have private profiles or limited data availability.
+</Step>
+</Steps>
+
+### Inconsistent Engagement Rates
+
+**Problem**: Engagement rates seem incorrect.
+
+**Solutions**:
+
+<Steps>
+<Step title="Understand the format">
+  Engagement rates are decimal values (0.05 = 5%).
+</Step>
+
+<Step title="Check calculation method">
+  Engagement rate = (likes + comments + shares) / followers
+</Step>
+
+<Step title="Verify data freshness">
+  Check when the data was last updated.
+</Step>
+</Steps>
+
+## Network Issues
+
+### Connection Timeouts
+
+**Problem**: Requests are timing out.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check network connectivity">
+  Verify your internet connection and firewall settings.
+</Step>
+
+<Step title="Increase timeout">
+  Set longer timeouts for your requests:
+  
+  ```javascript
+  const response = await fetch(url, {
+    timeout: 30000 // 30 seconds
+  });
+  ```
+</Step>
+
+<Step title="Retry with backoff">
+  Implement retry logic with exponential backoff.
+</Step>
+</Steps>
+
+### SSL/TLS Issues
+
+**Problem**: SSL certificate errors.
+
+**Solutions**:
+
+<Steps>
+<Step title="Update certificates">
+  Ensure your system has up-to-date SSL certificates.
+</Step>
+
+<Step title="Check proxy settings">
+  Verify proxy configuration if you're behind a corporate firewall.
+</Step>
+
+<Step title="Use HTTPS">
+  Always use HTTPS endpoints (`https://api.influship.com`).
+</Step>
+</Steps>
+
+## Development Issues
+
+### Environment Variables
+
+**Problem**: API key not being read from environment variables.
+
+**Solutions**:
+
+<Steps>
+<Step title="Check variable name">
+  Ensure the environment variable name matches your code:
+  
+  ```bash
+  # .env file
+  INFLUSHIP_API_KEY=your_key_here
+  ```
+</Step>
+
+<Step title="Load environment variables">
+  Make sure to load the `.env` file:
+  
+  ```javascript
+  require('dotenv').config();
+  const apiKey = process.env.INFLUSHIP_API_KEY;
+  ```
+</Step>
+
+<Step title="Verify file location">
+  Ensure the `.env` file is in the correct directory.
+</Step>
+</Steps>
+
+### CORS Issues
+
+**Problem**: CORS errors in browser applications.
+
+**Solutions**:
+
+<Steps>
+<Step title="Use server-side requests">
+  Make API requests from your backend, not directly from the browser.
+</Step>
+
+<Step title="Check domain whitelist">
+  Ensure your domain is whitelisted if required.
+</Step>
+
+<Step title="Use proper headers">
+  Include the correct headers in your requests.
+</Step>
+</Steps>
+
+## Debugging Tips
+
+### Enable Verbose Logging
+
+```javascript
+// Enable detailed logging
+console.log('Request:', {
+  url: endpoint,
+  headers: headers,
+  body: body
+});
+
+console.log('Response:', {
+  status: response.status,
+  headers: response.headers,
+  data: data
+});
+```
+
+### Use Request IDs
+
+Include the request ID in error reports:
+
+```javascript
+try {
+  const response = await client.request('/v1/search', options);
+} catch (error) {
+  console.error('Request failed:', {
+    message: error.message,
+    requestId: error.requestId
+  });
+}
+```
+
+### Test with curl
+
+Use curl to isolate issues:
+
+```bash
+# Test basic connectivity
+curl -v https://api.influship.com/health
+
+# Test with API key
+curl -v -H "X-API-Key: YOUR_API_KEY" https://api.influship.com/health
+
+# Test specific endpoint
+curl -v -X POST \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "test"}' \
+  https://api.influship.com/v1/search
+```
+
+## Getting Help
+
+### Before Contacting Support
+
+<Steps>
+<Step title="Check documentation">
+  Review the [API Reference](/api-reference/introduction) and [FAQ](/support/faq).
+</Step>
+
+<Step title="Test with curl">
+  Reproduce the issue with a simple curl command.
+</Step>
+
+<Step title="Check status page">
+  Verify there are no known service issues at [status.influship.com](https://status.influship.com).
+</Step>
+
+<Step title="Gather information">
+  Collect error messages, request IDs, and steps to reproduce.
+</Step>
+</Steps>
+
+### Contacting Support
+
+When contacting support, include:
+
+- **Error message**: Full error text
+- **Request ID**: From the error response
+- **Steps to reproduce**: What you did to trigger the error
+- **Expected behavior**: What you expected to happen
+- **Actual behavior**: What actually happened
+- **Code example**: Minimal code that reproduces the issue
+
+**Email**: [support@influship.com](mailto:support@influship.com)
+
+## Related Resources
+
+- [API Reference](/api-reference/introduction) - Complete API documentation
+- [FAQ](/support/faq) - Frequently asked questions
+- [Implementation Status](/implementation-status) - Current development status
+- [Error Handling Guide](/guides/error-handling) - Comprehensive error handling

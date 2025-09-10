@@ -1,0 +1,394 @@
+---
+title: 'JavaScript Examples'
+description: 'Ready-to-use JavaScript code examples for the Influship API'
+---
+
+# JavaScript Examples
+
+Complete JavaScript examples for integrating with the Influship API using modern async/await syntax and error handling.
+
+## Setup
+
+### Install Dependencies
+
+```bash
+npm install node-fetch
+# or
+yarn add node-fetch
+```
+
+### Environment Variables
+
+Create a `.env` file:
+
+```bash
+INFLUSHIP_API_KEY=your_api_key_here
+```
+
+## Basic API Client
+
+```javascript
+// influship-client.js
+const fetch = require('node-fetch');
+
+class InflushipClient {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseURL = 'https://api.influship.com';
+  }
+
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const config = {
+      headers: {
+        'X-API-Key': this.apiKey,
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    };
+
+    try {
+      const response = await fetch(url, config);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${data.error?.message || 'Unknown error'}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Request failed:', error.message);
+      throw error;
+    }
+  }
+
+  // Health check
+  async health() {
+    return this.request('/health');
+  }
+
+  // Search creators
+  async searchCreators(query, filters = {}) {
+    return this.request('/v1/search', {
+      method: 'POST',
+      body: JSON.stringify({ query, ...filters })
+    });
+  }
+
+  // Get creator by ID
+  async getCreator(id, mode = 'lite') {
+    return this.request(`/v1/creators/${id}?mode=${mode}`);
+  }
+
+  // Analyze post
+  async analyzePost(platform, url, mode = 'lite') {
+    return this.request('/v1/posts/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ platform, url, mode })
+    });
+  }
+}
+
+module.exports = InflushipClient;
+```
+
+## Usage Examples
+
+### 1. Health Check
+
+```javascript
+const InflushipClient = require('./influship-client');
+const client = new InflushipClient(process.env.INFLUSHIP_API_KEY);
+
+async function checkHealth() {
+  try {
+    const health = await client.health();
+    console.log('API Status:', health);
+  } catch (error) {
+    console.error('Health check failed:', error.message);
+  }
+}
+
+checkHealth();
+```
+
+### 2. Search for Creators
+
+```javascript
+async function searchFitnessInfluencers() {
+  try {
+    const results = await client.searchCreators(
+      'fitness influencers with high engagement',
+      {
+        filters: {
+          min_followers: 10000,
+          engagement_rate: { min: 0.03 },
+          platforms: ['instagram']
+        },
+        limit: 10
+      }
+    );
+
+    console.log(`Found ${results.items.length} creators`);
+    results.items.forEach(creator => {
+      console.log(`${creator.name} (@${creator.username}) - ${creator.followers} followers`);
+    });
+
+    return results;
+  } catch (error) {
+    console.error('Search failed:', error.message);
+  }
+}
+
+searchFitnessInfluencers();
+```
+
+### 3. Get Detailed Creator Information
+
+```javascript
+async function getCreatorDetails(creatorId) {
+  try {
+    const creator = await client.getCreator(creatorId, 'detailed');
+    
+    console.log('Creator Details:');
+    console.log(`Name: ${creator.name}`);
+    console.log(`Username: ${creator.username}`);
+    console.log(`Followers: ${creator.followers.toLocaleString()}`);
+    console.log(`Engagement Rate: ${(creator.engagement_rate * 100).toFixed(2)}%`);
+    console.log(`Bio: ${creator.bio}`);
+    
+    if (creator.contact?.email) {
+      console.log(`Email: ${creator.contact.email}`);
+    }
+    
+    return creator;
+  } catch (error) {
+    console.error('Failed to get creator details:', error.message);
+  }
+}
+
+// Usage
+getCreatorDetails('cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W');
+```
+
+### 4. Analyze Instagram Post
+
+```javascript
+async function analyzePost(postUrl) {
+  try {
+    const analysis = await client.analyzePost('instagram', postUrl, 'detailed');
+    
+    console.log('Post Analysis:');
+    console.log(`Likes: ${analysis.likes.toLocaleString()}`);
+    console.log(`Comments: ${analysis.comments.toLocaleString()}`);
+    console.log(`Engagement Rate: ${(analysis.engagement_rate * 100).toFixed(2)}%`);
+    
+    if (analysis.content_analysis) {
+      console.log('Topics:', analysis.content_analysis.topics.join(', '));
+      console.log('Hashtags:', analysis.content_analysis.hashtags.join(', '));
+    }
+    
+    return analysis;
+  } catch (error) {
+    console.error('Post analysis failed:', error.message);
+  }
+}
+
+// Usage
+analyzePost('https://instagram.com/p/POST_ID');
+```
+
+### 5. Batch Creator Enrichment
+
+```javascript
+async function enrichMultipleCreators(creatorIds) {
+  const results = [];
+  
+  // Process in batches to avoid rate limits
+  const batchSize = 5;
+  for (let i = 0; i < creatorIds.length; i += batchSize) {
+    const batch = creatorIds.slice(i, i + batchSize);
+    
+    const promises = batch.map(async (id) => {
+      try {
+        const creator = await client.getCreator(id, 'detailed');
+        return { id, success: true, data: creator };
+      } catch (error) {
+        return { id, success: false, error: error.message };
+      }
+    });
+    
+    const batchResults = await Promise.all(promises);
+    results.push(...batchResults);
+    
+    // Add delay between batches
+    if (i + batchSize < creatorIds.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+  
+  return results;
+}
+
+// Usage
+const creatorIds = [
+  'cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W',
+  'cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X'
+];
+
+enrichMultipleCreators(creatorIds).then(results => {
+  results.forEach(result => {
+    if (result.success) {
+      console.log(`✅ ${result.id}: ${result.data.name}`);
+    } else {
+      console.log(`❌ ${result.id}: ${result.error}`);
+    }
+  });
+});
+```
+
+### 6. Error Handling with Retry Logic
+
+```javascript
+async function requestWithRetry(endpoint, options = {}, maxRetries = 3) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await client.request(endpoint, options);
+    } catch (error) {
+      lastError = error;
+      
+      // Don't retry on authentication errors
+      if (error.message.includes('unauthorized') || error.message.includes('forbidden')) {
+        throw error;
+      }
+      
+      // Don't retry on validation errors
+      if (error.message.includes('validation_error')) {
+        throw error;
+      }
+      
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+        console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
+// Usage
+async function searchWithRetry(query) {
+  try {
+    const results = await requestWithRetry('/v1/search', {
+      method: 'POST',
+      body: JSON.stringify({ query })
+    });
+    return results;
+  } catch (error) {
+    console.error('Search failed after retries:', error.message);
+    throw error;
+  }
+}
+```
+
+### 7. Complete Workflow Example
+
+```javascript
+async function findAndAnalyzeCreators() {
+  try {
+    // Step 1: Search for creators
+    console.log('🔍 Searching for fitness influencers...');
+    const searchResults = await client.searchCreators(
+      'fitness influencers with high engagement',
+      { limit: 5 }
+    );
+    
+    if (searchResults.items.length === 0) {
+      console.log('No creators found');
+      return;
+    }
+    
+    // Step 2: Get detailed information for each creator
+    console.log(`📊 Analyzing ${searchResults.items.length} creators...`);
+    const creators = [];
+    
+    for (const item of searchResults.items) {
+      try {
+        const creator = await client.getCreator(item.id, 'detailed');
+        creators.push(creator);
+        console.log(`✅ Analyzed: ${creator.name} (${creator.followers} followers)`);
+      } catch (error) {
+        console.log(`❌ Failed to analyze: ${item.name} - ${error.message}`);
+      }
+    }
+    
+    // Step 3: Sort by engagement rate
+    creators.sort((a, b) => b.engagement_rate - a.engagement_rate);
+    
+    // Step 4: Display results
+    console.log('\n🏆 Top Creators by Engagement:');
+    creators.forEach((creator, index) => {
+      console.log(`${index + 1}. ${creator.name} (@${creator.username})`);
+      console.log(`   Followers: ${creator.followers.toLocaleString()}`);
+      console.log(`   Engagement: ${(creator.engagement_rate * 100).toFixed(2)}%`);
+      console.log(`   Bio: ${creator.bio}`);
+      console.log('');
+    });
+    
+    return creators;
+  } catch (error) {
+    console.error('Workflow failed:', error.message);
+  }
+}
+
+// Run the complete workflow
+findAndAnalyzeCreators();
+```
+
+## TypeScript Support
+
+If you're using TypeScript, here are the type definitions:
+
+```typescript
+// types.ts
+export interface Creator {
+  id: string;
+  name: string;
+  username: string;
+  platform: string;
+  followers: number;
+  engagement_rate: number;
+  verified: boolean;
+  bio?: string;
+  contact?: {
+    email?: string;
+    website?: string;
+  };
+}
+
+export interface SearchResponse {
+  items: Creator[];
+  filtered_total: number;
+  has_more: boolean;
+  next_cursor?: string;
+}
+
+export interface ApiError {
+  error: {
+    code: string;
+    message: string;
+    request_id: string;
+  };
+}
+```
+
+## Related Examples
+
+- [Python Examples](/examples/python) - Python SDK examples
+- [cURL Examples](/examples/curl) - Command-line examples
+- [Error Handling Guide](/guides/error-handling) - Comprehensive error handling

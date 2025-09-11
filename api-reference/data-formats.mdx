@@ -1,247 +1,87 @@
 ---
 title: 'Data Formats'
-description: 'Understanding data formats and schemas in the Influship API'
+description: 'Understanding data formats and field types in the Influship API'
 ---
 
 # Data Formats
 
-This page explains the data formats, schemas, and conventions used throughout the Influship API.
+This page explains the data formats and field types used throughout the Influship API.
 
-## Core Data Types
+## Common Field Types
 
-### Engagement Rates
-All engagement rates are expressed as decimal values between 0.0 and 1.0:
+### Engagement Rate
 
-```json
-{
-  "engagement_rate": 0.05,  // 5% engagement rate
-  "like_rate": 0.12,        // 12% like rate
-  "comment_rate": 0.02      // 2% comment rate
-}
-```
+- **Type**: `number` (float)
+- **Range**: 0.0 to 1.0
+- **Example**: `0.045` (4.5% engagement rate)
 
-### Match Scores
-Match scores range from 0.0 to 1.0, where:
-- `0.0` = No match
-- `0.5` = Moderate match  
-- `1.0` = Perfect match
+### Follower Count
 
-```json
-{
-  "match_score": 0.87,
-  "decision": "good",
-  "confidence": 0.92
-}
-```
+- **Type**: `integer`
+- **Example**: `125000`
 
 ### Timestamps
-All timestamps use ISO 8601 format with UTC timezone:
 
-```json
-{
-  "created_at": "2025-01-15T10:30:00Z",
-  "updated_at": "2025-01-15T14:45:30Z"
-}
-```
+- **Type**: `string`
+- **Format**: ISO 8601
+- **Example**: `"2024-01-15T10:30:00Z"`
 
-## Target Identifiers
+### Creator ID
 
-The API uses platform-prefixed identifiers for different target types:
+- **Type**: `string`
+- **Format**: UUID with prefix
+- **Example**: `"cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"`
 
-### Creator IDs
-ULID format with `cr_` prefix:
-```json
-{
-  "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
-}
-```
+### Platform
 
-### Profile IDs
-Platform and username combination:
-```json
-{
-  "id": "instagram:username",
-  "id": "tiktok:creator_handle"
-}
-```
+- **Type**: `string`
+- **Values**: `"instagram"` (more platforms coming soon)
 
-### Post IDs
-Platform and post identifier:
-```json
-{
-  "id": "instagram:post_id",
-  "id": "tiktok:video_id"
-}
-```
+## Response Formats
 
-## Creator Schema
-
-### Basic Creator Object
-```json
-{
-  "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W",
-  "name": "John Doe",
-  "username": "johndoe",
-  "platform": "instagram",
-  "followers": 150000,
-  "engagement_rate": 0.045,
-  "verified": true,
-  "created_at": "2025-01-15T10:30:00Z"
-}
-```
-
-### Detailed Creator Object
-```json
-{
-  "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W",
-  "name": "John Doe",
-  "username": "johndoe",
-  "platform": "instagram",
-  "bio": "Fitness enthusiast and nutrition coach",
-  "followers": 150000,
-  "following": 1200,
-  "posts": 450,
-  "engagement_rate": 0.045,
-  "like_rate": 0.038,
-  "comment_rate": 0.007,
-  "verified": true,
-  "contact": {
-    "email": "john@example.com",
-    "website": "https://johndoe.com"
-  },
-  "created_at": "2025-01-15T10:30:00Z",
-  "updated_at": "2025-01-15T14:45:30Z"
-}
-```
-
-## Post Schema
-
-### Basic Post Object
-```json
-{
-  "id": "instagram:post_123",
-  "creator_id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W",
-  "platform": "instagram",
-  "url": "https://instagram.com/p/post_123",
-  "caption": "Amazing workout today! #fitness #motivation",
-  "likes": 1250,
-  "comments": 45,
-  "shares": 12,
-  "created_at": "2025-01-15T10:30:00Z"
-}
-```
-
-### Detailed Post Object
-```json
-{
-  "id": "instagram:post_123",
-  "creator_id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W",
-  "platform": "instagram",
-  "url": "https://instagram.com/p/post_123",
-  "caption": "Amazing workout today! #fitness #motivation",
-  "media_type": "image",
-  "likes": 1250,
-  "comments": 45,
-  "shares": 12,
-  "views": 8500,
-  "hashtags": ["fitness", "motivation", "workout"],
-  "mentions": ["@gym", "@trainer"],
-  "created_at": "2025-01-15T10:30:00Z"
-}
-```
-
-## Analysis Results
-
-### Brand Safety Analysis
-```json
-{
-  "overall_score": 0.85,
-  "category": "safe",
-  "risks": [],
-  "confidence": 0.92,
-  "breakdown": {
-    "content_appropriateness": 0.90,
-    "brand_alignment": 0.80,
-    "audience_safety": 0.85
-  }
-}
-```
-
-### Content Analysis
-```json
-{
-  "topics": ["fitness", "nutrition", "lifestyle"],
-  "sentiment": "positive",
-  "call_to_action": true,
-  "product_mentions": ["protein_powder", "gym_equipment"],
-  "hashtag_analysis": {
-    "trending": ["#fitness", "#motivation"],
-    "niche": ["#protein", "#workout"]
-  }
-}
-```
-
-## Error Response Format
-
-All errors follow a consistent format:
-
-```json
-{
-  "error": {
-    "code": "validation_error",
-    "message": "The request body is invalid",
-    "details": {
-      "field": "query",
-      "issue": "Query must be at least 3 characters long"
-    },
-    "request_id": "req_123456789"
-  }
-}
-```
-
-## Pagination Format
-
-List responses include pagination metadata:
+### Success Response
 
 ```json
 {
   "items": [...],
-  "filtered_total": 150,
+  "filtered_total": 45,
   "has_more": true,
-  "next_cursor": "eyJvZmZzZXQiOjIwfQ==",
-  "pagination": {
-    "limit": 20,
-    "offset": 0,
-    "total": 150
+  "next_cursor": "eyJvZmZzZXQiOjEwfQ=="
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "The request is missing required parameters",
+    "details": {
+      "missing_fields": ["query"]
+    }
   }
 }
 ```
 
-## Job Response Format
+## Pagination
 
-Async operations return job information:
+### Cursor-based Pagination
 
-```json
-{
-  "job_id": "job_123456789",
-  "status": "queued",
-  "created_at": "2025-01-15T10:30:00Z",
-  "estimated_completion": "2025-01-15T10:35:00Z"
-}
-```
+- Use `next_cursor` from previous response
+- Include `cursor` parameter in next request
+- `has_more` indicates if more results exist
 
-## Webhook Payload Format
+### Limit Parameter
 
-Webhook notifications include job status updates:
+- **Default**: 25
+- **Maximum**: 100
+- **Minimum**: 1
 
-```json
-{
-  "event": "job.completed",
-  "job_id": "job_123456789",
-  "status": "completed",
-  "result": {
-    "targets": [...]
-  },
-  "timestamp": "2025-01-15T10:35:00Z"
-}
-```
+## Rate Limit Headers
+
+All responses include rate limit information:
+
+- `X-RateLimit-Limit`: Maximum requests per hour
+- `X-RateLimit-Remaining`: Requests remaining this hour
+- `X-RateLimit-Reset`: Unix timestamp when limits reset

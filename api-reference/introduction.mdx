@@ -1,21 +1,15 @@
 ---
 title: 'API Reference'
-description: 'Complete reference for the Influship API'
+description: 'Complete reference for the Influship API endpoints'
 ---
 
 # API Reference
 
-Welcome to the Influship API reference. This comprehensive guide covers all endpoints, parameters, responses, and best practices for integrating with our AI-powered influencer discovery and analysis platform.
-
-## Implementation Status
-
-<Warning>
-**Important**: The API is in active development. Some endpoints are fully functional while others are in various stages of implementation. Check our [Implementation Status](/implementation-status) page for detailed information about what's working now.
-</Warning>
+Complete documentation for all Influship API endpoints.
 
 ## Base URL
 
-All API requests should be made to:
+All API requests are made to:
 
 ```
 https://api.influship.com
@@ -23,177 +17,110 @@ https://api.influship.com
 
 ## Authentication
 
-The Influship API uses API key authentication. Include your API key in the `X-API-Key` header:
+All requests require an API key in the `X-API-Key` header:
 
 ```bash
-curl -H "X-API-Key: YOUR_API_KEY" \
-  https://api.influship.com/health
+curl -H "X-API-Key: YOUR_API_KEY" https://api.influship.com/health
 ```
 
-<Warning>
-Keep your API key secure! Never share it publicly or commit it to version control. Store it as an environment variable or in a secure configuration file.
-</Warning>
+## Response Format
 
-## Rate Limits
+All responses are in JSON format with the following structure:
 
-The API implements rate limiting to ensure fair usage across all clients:
+### Success Response
 
-- **Free tier**: 100 requests per hour
-- **Pro tier**: 1,000 requests per hour  
-- **Enterprise**: Custom limits based on your plan
-
-Rate limit headers are included in all responses:
-
-```
-RateLimit-Limit: 1000
-RateLimit-Remaining: 999
-RateLimit-Reset: 1640995200
+```json
+{
+  "data": {...},
+  "meta": {...}
+}
 ```
 
-When you exceed the rate limit, you'll receive a `429 Too Many Requests` response with a `Retry-After` header indicating when you can retry.
-
-## Error Handling
-
-The API uses standard HTTP status codes and returns errors in a consistent format:
+### Error Response
 
 ```json
 {
   "error": {
-    "code": "validation_error",
-    "message": "The request body is invalid",
-    "request_id": "req_123456789"
+    "code": "error_code",
+    "message": "Human readable error message",
+    "details": {...}
   }
 }
 ```
 
-### Common Error Codes
+## HTTP Status Codes
 
-| Code | Description |
-|------|-------------|
-| `validation_error` | Request validation failed |
-| `unauthorized` | API key missing or invalid |
-| `forbidden` | Insufficient permissions |
-| `not_found` | Resource not found |
-| `rate_limited` | Rate limit exceeded |
-| `quota_exceeded` | Daily quota exceeded |
-| `internal_error` | Server error |
+- `200` - Success
+- `400` - Bad Request
+- `401` - Unauthorized
+- `404` - Not Found
+- `429` - Rate Limited
+- `500` - Internal Server Error
 
-## Data Formats
+## Rate Limits
 
-### Engagement Rates
-All engagement rates are expressed as decimal values between 0.0 and 1.0:
-- `0.05` = 5% engagement rate
-- `0.15` = 15% engagement rate
+- **Free tier**: 1,000 requests per hour
+- **Pro tier**: 10,000 requests per hour
 
-### Match Scores
-Match scores range from 0.0 to 1.0:
-- `0.0` = No match
-- `1.0` = Perfect match
+Rate limit information is included in response headers.
 
-### Timestamps
-All timestamps are in ISO 8601 format with UTC timezone:
-```
-2025-01-15T10:30:00Z
-```
+## Billing & Credits
 
-### Target IDs
-Target identifiers use a platform-prefixed format:
-- Creator IDs: `cr_01HZ...` (ULID format)
-- Profile IDs: `instagram:username`
-- Post IDs: `instagram:post_id`
+- Responses include billing headers:
+  - `X-Credits-Charged`: credits billed for this request
+  - `X-Credits-Features`: pricing-impacting features, e.g. `emails,raw`
+  - `X-Billing-Plan`: your plan identifier
 
-## Pagination
+### Request parameters that affect billing
 
-List endpoints support cursor-based pagination for efficient data retrieval:
+- **mode**: `lite` (default) | `detailed` – controls richness of normalized fields
+- **scope**: `seed_platform` (default) | `all_platforms` – whether to include all known profiles
+- **include**: array – feature toggles; currently supports `emails`
+- **live**: boolean – when true, returns `202 Accepted` with `job_id` and applies a live multiplier
 
-```json
-{
-  "items": [...],
-  "filtered_total": 150,
-  "has_more": true,
-  "next_cursor": "eyJvZmZzZXQiOjIwfQ=="
-}
+> Emails are billed as a premium add-on. To request them, pass `include=emails`.
+
+### Example
+
+```http
+POST /v1/creators
+{ "creator_ids": ["UUID"], "mode": "detailed", "result_scope": "all_platforms", "include": ["emails"] }
+X-Credits-Charged: 2.40
+X-Credits-Features: emails
+X-Billing-Plan: pro
 ```
 
-To get the next page, include the `cursor` parameter in your request:
+## Live Processing
 
-```bash
-curl -H "X-API-Key: YOUR_API_KEY" \
-  "https://api.influship.com/v1/search?cursor=eyJvZmZzZXQiOjIwfQ=="
-```
+- For heavy operations, set `live=true`
+- Behavior:
+  - `live=false` (default): returns cached data with 200 if available; may return 202 on cache-miss
+  - `live=true`: always returns 202 with `{ job_id }`; results delivered via polling or webhooks
 
-## Canonical Endpoint Design
-
-The Influship API uses a canonical endpoint pattern with `targets[]` arrays for efficient batch processing:
-
-### Benefits
-- **Single Mental Model**: Pick an action, pass targets, get results
-- **Batch Processing**: Process multiple targets in one request
-- **Consistent API**: All endpoints follow the same pattern
-- **Better Performance**: Reduce API calls and improve efficiency
-
-### Example Structure
-```json
-{
-  "targets": [
-    {
-      "type": "creator",
-      "id": "cr_01HZ..."
-    },
-    {
-      "type": "profile", 
-      "id": "instagram:username"
-    }
-  ],
-  "options": {
-    "include_evidence": true
-  }
-}
-```
-
-## Webhooks
-
-Configure webhooks to receive real-time notifications about job completion and other events:
-
-```json
-{
-  "job_id": "job_123456789",
-  "status": "completed",
-  "result": {
-    "targets": [...]
-  },
-  "timestamp": "2025-01-15T10:30:00Z"
-}
-```
-
-## SDKs and Libraries
-
-We provide official SDKs for popular programming languages:
+## Endpoints
 
 <CardGroup cols={2}>
-  <Card title="JavaScript/Node.js" icon="js" href="/examples/javascript">
-    Official JavaScript SDK with TypeScript support
-  </Card>
-  <Card title="Python" icon="python" href="/examples/python">
-    Python SDK with async support
-  </Card>
-  <Card title="cURL Examples" icon="terminal" href="/examples/curl">
-    Command-line examples for testing
-  </Card>
-  <Card title="Postman Collection" icon="postman" href="/examples/postman">
-    Import our Postman collection for easy testing
-  </Card>
+<Card title="Health Check" icon="heart" href="/api-reference/health">
+  `GET /health` - API status monitoring
+</Card>
+
+<Card
+  title='Search Creators'
+  icon='search'
+  href='/api-reference/search-creators'
+>
+  `POST /v1/search` - AI-powered influencer discovery
+</Card>
+
+<Card title='Creators' icon='user' href='/api-reference/get-creators'>
+  `POST /v1/creators` - Detailed creator profiles (batch)
+</Card>
+
+<Card title='Lookalike' icon='sparkles' href='/api-reference/lookalike'>
+  `POST /v1/lookalike` - Find similar creators
+</Card>
+
+<Card title="Brand Safety" icon="shield" href="/api-reference/brand-safety">
+  `POST /v1/brand-safety/*` - Safety for creators, profiles, posts
+</Card>
 </CardGroup>
-
-## Getting Help
-
-If you need assistance with the API:
-
-- **Email**: [support@influship.com](mailto:support@influship.com)
-- **Documentation**: Browse our [Guides](/guides/finding-influencers) section
-- **Status**: Check [status.influship.com](https://status.influship.com) for service updates
-- **Community**: Join our [Discord server](https://discord.gg/influship) for discussions
-
-<Note>
-This API reference is automatically generated from our OpenAPI specification and is updated with each release. Last updated: January 2025
-</Note>

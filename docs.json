@@ -11,19 +11,15 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Getting Started",
+        "tab": "Quick Start",
         "groups": [
           {
-            "group": "Introduction",
+            "group": "Get Started",
             "pages": ["index", "quickstart", "implementation-status"]
           },
           {
             "group": "Authentication",
-            "pages": ["guides/authentication", "guides/api-keys"]
-          },
-          {
-            "group": "Rate Limits & Billing",
-            "pages": ["guides/rate-limits", "guides/billing"]
+            "pages": ["guides/authentication"]
           }
         ]
       },
@@ -44,44 +40,24 @@
         ]
       },
       {
-        "tab": "Guides",
+        "tab": "Examples",
         "groups": [
-          {
-            "group": "Tutorials",
-            "pages": [
-              "guides/finding-influencers",
-              "guides/analyzing-content",
-              "guides/brand-safety-check"
-            ]
-          },
           {
             "group": "Code Examples",
             "pages": ["examples/javascript", "examples/python", "examples/curl"]
-          },
-          {
-            "group": "Best Practices",
-            "pages": [
-              "guides/error-handling",
-              "guides/performance-optimization",
-              "guides/webhook-integration"
-            ]
           }
         ]
       },
       {
-        "tab": "Resources",
+        "tab": "Support",
         "groups": [
           {
-            "group": "Support",
+            "group": "Help",
             "pages": [
               "support/faq",
               "support/troubleshooting",
               "support/contact"
             ]
-          },
-          {
-            "group": "Changelog",
-            "pages": ["changelog/releases", "changelog/roadmap"]
           }
         ]
       }

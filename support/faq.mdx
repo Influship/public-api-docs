@@ -1,205 +1,83 @@
 ---
-title: 'Frequently Asked Questions'
-description: 'Common questions and answers about the Influship API'
+title: 'FAQ'
+description: 'Frequently asked questions about the Influship API'
 ---
 
 # Frequently Asked Questions
 
-## General Questions
-
-### What is the Influship API?
-
-The Influship API is an AI-powered platform for influencer discovery, content analysis, and brand safety evaluation. It helps brands find the right creators for their campaigns and analyze content for brand alignment.
-
-### What platforms does the API support?
-
-Currently, the API supports Instagram. Additional platforms like TikTok, YouTube, and Twitter are planned for future releases.
-
-### Is the API free to use?
-
-We offer a free tier with basic functionality and rate limits. Paid plans provide higher limits and additional features. See our [pricing page](https://influship.com/pricing) for details.
-
-## Implementation Status
-
-### What endpoints are currently working?
-
-<Warning>
-**Important**: The API is in active development. Check our [Implementation Status](/implementation-status) page for the most current information about what's working.
-</Warning>
-
-**Currently Working:**
-- ✅ Health check endpoint
-- ⚠️ Creator search (requires database setup)
-- ⚠️ Creator enrichment (legacy endpoints)
-- ⚠️ Lookalike search (requires Pinecone setup)
-
-**Not Yet Implemented:**
-- ❌ Canonical enrichment endpoint (`POST /v1/enrich`)
-- ❌ Canonical analysis endpoint (`POST /v1/analyze`)
-- ❌ Brand safety analysis (stubbed)
-- ❌ Post analysis (stubbed)
-
-### Why am I getting empty results from search?
-
-The search endpoint requires proper database setup with creator data and Pinecone embeddings. Without these, it will return empty results or errors. Check the [Implementation Status](/implementation-status) for setup requirements.
-
-### What does "live mode" mean?
-
-Live mode fetches fresh data from social media platforms at request time, providing the most up-to-date information. However, live mode is not yet implemented for most endpoints.
-
-## Authentication & API Keys
+## Getting Started
 
 ### How do I get an API key?
 
-1. Sign up at the [Influship Dashboard](https://dashboard.influship.com)
-2. Navigate to the "API Keys" section
-3. Click "Generate New Key"
+1. Sign up at [dashboard.influship.com](https://dashboard.influship.com)
+2. Navigate to the **API Keys** section
+3. Click **Generate New Key**
 4. Copy and store your key securely
 
-### How do I use my API key?
+### What's the difference between free and pro tiers?
 
-Include your API key in the `X-API-Key` header with every request:
+- **Free**: 1,000 requests per hour, basic features
+- **Pro**: 10,000 requests per hour, all features
 
-```bash
-curl -H "X-API-Key: YOUR_API_KEY" \
-  https://api.influship.com/health
-```
+### How do I test if my API key works?
 
-### Can I have multiple API keys?
-
-Yes, you can create multiple API keys for different applications or environments. Each key has the same permissions as your account.
-
-### What if I lose my API key?
-
-You cannot recover a lost API key. You'll need to generate a new one and update your applications. We recommend storing API keys as environment variables.
-
-## Rate Limits & Billing
-
-### What are the rate limits?
-
-- **Free tier**: 100 requests per hour
-- **Pro tier**: 1,000 requests per hour
-- **Enterprise**: Custom limits
-
-Rate limit headers are included in all responses.
-
-### What happens when I exceed rate limits?
-
-You'll receive a `429 Too Many Requests` response with a `Retry-After` header indicating when you can retry.
-
-### How is billing calculated?
-
-Billing is based on API requests and data processing. See our [billing guide](/guides/billing) for detailed information.
-
-## Data & Privacy
-
-### What data do you collect?
-
-We collect publicly available social media data and use it to provide our services. We do not collect private or personal information beyond what's publicly accessible.
-
-### How is creator data sourced?
-
-Creator data is sourced from publicly available social media profiles and posts. We respect platform terms of service and privacy settings.
-
-### Can creators opt out?
-
-Creators can contact us to request removal of their data from our platform. We respect privacy requests and will remove data when requested.
-
-## Technical Questions
-
-### What's the difference between "lite" and "detailed" mode?
-
-- **Lite mode**: Basic information with essential metrics
-- **Detailed mode**: Comprehensive data including contact information, detailed analytics, and additional metadata
-
-### How does the canonical endpoint design work?
-
-The API uses a canonical pattern with `targets[]` arrays for efficient batch processing:
-
-```json
-{
-  "targets": [
-    {"type": "creator", "id": "cr_01HZ..."},
-    {"type": "profile", "id": "instagram:username"}
-  ]
-}
-```
-
-### What are target IDs?
-
-Target IDs use platform-prefixed formats:
-- Creator IDs: `cr_01HZ...` (ULID format)
-- Profile IDs: `instagram:username`
-- Post IDs: `instagram:post_id`
-
-### How does pagination work?
-
-The API uses cursor-based pagination. Include the `cursor` parameter from the previous response to get the next page:
+Use the health endpoint:
 
 ```bash
-curl "https://api.influship.com/v1/search?cursor=eyJvZmZzZXQiOjIwfQ=="
+curl -H "X-API-Key: YOUR_KEY" https://api.influship.com/health
 ```
 
-## Error Handling
+## API Usage
 
-### What do the error codes mean?
+### Why am I getting empty search results?
 
-| Code | Description |
-|------|-------------|
-| `validation_error` | Request validation failed |
-| `unauthorized` | API key missing or invalid |
-| `forbidden` | Insufficient permissions |
-| `not_found` | Resource not found |
-| `rate_limited` | Rate limit exceeded |
-| `quota_exceeded` | Daily quota exceeded |
-| `internal_error` | Server error |
+The search endpoint requires proper database setup with creator data. Check the [Implementation Status](/implementation-status) page for details.
 
-### How should I handle errors?
+### What platforms are supported?
 
-Implement proper error handling with retry logic for transient errors. Don't retry on authentication or validation errors.
+Currently only Instagram is supported. Additional platforms coming soon.
 
-### What's the request ID for?
+### How do I handle rate limits?
 
-The request ID helps with debugging and support. Include it when contacting support about specific errors.
+Rate limit information is in response headers:
 
-## Getting Help
+- `X-RateLimit-Remaining`: Requests left this hour
+- `X-RateLimit-Reset`: When limits reset
 
-### Where can I get support?
+### What's the difference between lite and detailed mode?
 
-- **Email**: [support@influship.com](mailto:support@influship.com)
-- **Documentation**: Browse our [API Reference](/api-reference/introduction)
-- **Status**: Check [status.influship.com](https://status.influship.com)
+- **Lite**: Basic information (default)
+- **Detailed**: Additional metrics and contact information
 
-### How do I report bugs?
+## Errors
 
-Email us at [support@influship.com](mailto:support@influship.com) with:
-- Description of the issue
-- Request ID (if available)
-- Steps to reproduce
-- Expected vs actual behavior
+### I'm getting 401 Unauthorized errors
 
-### Can I request new features?
+- Check that your API key is correct
+- Ensure you're using the `X-API-Key` header
+- Verify your API key is active
 
-Yes! We welcome feature requests. Email us at [support@influship.com](mailto:support@influship.com) with your suggestions.
+### I'm getting 429 Rate Limited errors
 
-## Development
+- You've exceeded your hourly request limit
+- Wait for the rate limit to reset
+- Consider upgrading your plan
 
-### Is there a sandbox environment?
+### I'm getting 500 Internal Server errors
 
-Currently, we only have a production environment. We're working on a sandbox for testing.
+- This is a server-side issue
+- Check [status.influship.com](https://status.influship.com) for updates
+- Contact support if the issue persists
 
-### Can I test the API without an account?
+## Support
 
-No, you need an account and API key to test the API. Sign up for a free account to get started.
+### How do I get help?
 
-### Do you provide SDKs?
+- Email: [support@influship.com](mailto:support@influship.com)
+- Check the [Quickstart Guide](/quickstart)
+- Review the [API Reference](/api-reference)
 
-We're working on official SDKs for JavaScript, Python, and other languages. Check our [examples](/examples/javascript) for current integration patterns.
+### What's the response time for support?
 
-## Still Have Questions?
-
-If you don't see your question answered here, please contact us:
-
-- **Email**: [support@influship.com](mailto:support@influship.com)
-- **Documentation**: [API Reference](/api-reference/introduction)
-- **Guides**: [Getting Started](/quickstart)
+- **Free tier**: 48-72 hours
+- **Pro tier**: 24-48 hours

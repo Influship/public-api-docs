@@ -1,98 +1,87 @@
 ---
-title: 'Influship API Documentation'
-description: 'AI-powered influencer discovery, analysis, and brand safety evaluation'
+title: 'Influship API'
+description: 'AI-powered influencer discovery and analysis'
 ---
 
 <img
-  className="block dark:hidden"
-  src="/images/hero-light.png"
-  alt="Influship API - Light"
+  className='block dark:hidden'
+  src='/images/hero-light.png'
+  alt='Influship API - Light'
 />
 <img
-  className="hidden dark:block"
-  src="/images/hero-dark.png"
-  alt="Influship API - Dark"
+  className='hidden dark:block'
+  src='/images/hero-dark.png'
+  alt='Influship API - Dark'
 />
 
 ## Welcome to Influship API
 
-The Influship API provides AI-powered tools for influencer discovery, content analysis, and brand safety evaluation. Find the perfect creators for your campaigns with intelligent search, analyze their content for brand alignment, and ensure brand safety across all partnerships.
-
-## Key Features
-
-- **🎯 Intelligent Search**: Find influencers using natural language queries with AI-powered recommendations
-- **📊 Content Analysis**: Analyze posts for brand safety, engagement patterns, and content themes
-- **🔍 Creator Enrichment**: Get detailed creator profiles with engagement metrics and contact information
-- **⚡ Match Scoring**: AI-powered creator-campaign matching with detailed explanations
-- **🛡️ Brand Safety**: Comprehensive brand safety evaluation for creators and content
-- **📈 Batch Processing**: Process multiple targets efficiently with our canonical endpoint design
-
-## Quick Start
-
-Get started with the Influship API in minutes:
-
-<Steps>
-<Step title="Get your API key">
-  Sign up at the [Influship Dashboard](https://dashboard.influship.com) to get your API key.
-</Step>
-
-<Step title="Make your first request">
-  Test the API with a simple health check:
-  
-  ```bash
-  curl -H "X-API-Key: YOUR_API_KEY" \
-    https://api.influship.com/health
-  ```
-</Step>
-
-<Step title="Search for creators">
-  Find influencers using natural language:
-  
-  ```bash
-  curl -X POST https://api.influship.com/v1/search \
-    -H "X-API-Key: YOUR_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d '{"query": "fitness influencers with 100k+ followers"}'
-  ```
-</Step>
-</Steps>
-
-## Implementation Status
-
-<Warning>
-**Current Status**: The API is in active development. Some endpoints are fully functional while others are in various stages of implementation. Check our [Implementation Status](/implementation-status) page for detailed information about what's working now.
-</Warning>
+AI-powered influencer discovery and analysis. Find the perfect creators for your campaigns with intelligent search and detailed analytics.
 
 ## What's Working Now
 
 <CardGroup cols={2}>
-  <Card title="✅ Health Check" icon="heart" href="/api-reference/health">
-    Basic health monitoring endpoint
-  </Card>
-  <Card title="⚠️ Creator Search" icon="magnifying-glass" href="/api-reference/search-creators">
-    AI-powered search (requires setup)
-  </Card>
-  <Card title="⚠️ Creator Enrichment" icon="user" href="/api-reference/enrich-profiles">
-    Get detailed creator profiles
-  </Card>
-  <Card title="⚠️ Content Analysis" icon="chart-bar" href="/api-reference/analyze-posts">
-    Analyze posts for insights
-  </Card>
+<Card title="✅ Health Check" icon="check">
+  API status monitoring
+</Card>
+
+<Card title='✅ Creator Search' icon='search'>
+  AI-powered influencer discovery
+</Card>
+
+<Card title='✅ Creator Details' icon='user'>
+  Detailed creator profiles
+</Card>
+
+<Card title="⚠️ Content Analysis" icon="clock">
+  Coming soon
+</Card>
 </CardGroup>
+
+## Quick Start
+
+<Steps>
+<Step title="Get API key">
+  Sign up at [dashboard.influship.com](https://dashboard.influship.com)
+</Step>
+
+<Step title='Test API'>
+  ```bash curl -H "X-API-Key: YOUR_KEY" https://api.influship.com/health ```
+</Step>
+
+<Step title="Search creators">
+  ```bash
+  curl -X POST https://api.influship.com/v1/search \
+    -H "X-API-Key: YOUR_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"query": "fitness influencers"}'
+  ```
+</Step>
+</Steps>
+
+## Key Features
+
+- **🎯 AI Search**: Natural language influencer discovery
+- **📊 Creator Analytics**: Detailed profiles and metrics
+- **⚡ Fast API**: Optimized for speed and reliability
+- **🔒 Secure**: API key authentication
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
-    Complete setup guide with examples
-  </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Detailed endpoint documentation
-  </Card>
-  <Card title="Code Examples" icon="terminal" href="/examples/javascript">
-    Ready-to-use code samples
-  </Card>
-  <Card title="Implementation Status" icon="info-circle" href="/implementation-status">
-    Current development status
-  </Card>
+<Card title="Quickstart" icon="rocket" href="/quickstart">
+  Get started in 5 minutes
+</Card>
+
+<Card title='API Reference' icon='book' href='/api-reference'>
+  Complete endpoint docs
+</Card>
+
+<Card title='Examples' icon='code' href='/examples'>
+  Code samples
+</Card>
+
+<Card title="Support" icon="envelope" href="mailto:support@influship.com">
+  Get help
+</Card>
 </CardGroup>

@@ -1,44 +1,48 @@
-# Mintlify Starter Kit
+# Influship API Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Streamlined documentation for the Influship API MVP launch.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
-
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
-
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
+## Structure
 
 ```
-npm i -g mint
+docs/
+├── index.mdx                 # Homepage
+├── quickstart.mdx           # 5-minute getting started guide
+├── implementation-status.mdx # What's working vs coming soon
+├── guides/
+│   └── authentication.mdx   # API key authentication
+├── api-reference/
+│   ├── introduction.mdx     # API overview
+│   └── data-formats.mdx     # Data types and formats
+├── examples/                # Code examples (existing)
+├── support/
+│   ├── faq.mdx             # Common questions
+│   ├── troubleshooting.mdx # Issue resolution
+│   └── contact.mdx         # Support contact info
+└── docs.json               # Navigation configuration
 ```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
+## Key Features
 
-```
-mint dev
-```
+- **Focused on MVP**: Only documents what's actually working
+- **Clear status indicators**: ✅ Working, ⚠️ Coming Soon
+- **Minimal cognitive load**: Simple navigation, essential content only
+- **Quick start path**: 5-minute setup guide
+- **Proper expectations**: Implementation status page
 
-View your local preview at `http://localhost:3000`.
+## Deployment
 
-## Publishing changes
+1. Deploy the MVP OpenAPI spec to your server
+2. Update the OpenAPI URL in `docs.json` if needed
+3. Deploy the docs to your hosting platform
+4. Test with early customers
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
+## Files Removed for MVP
 
-## Need help?
+The following files were removed to focus on essential content:
 
-### Troubleshooting
+- Complex guide files (billing, performance, webhooks, etc.)
+- Changelog and roadmap pages
+- Advanced feature documentation
 
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
-- [Mintlify community](https://mintlify.com/community)
+These can be added back as features are implemented.

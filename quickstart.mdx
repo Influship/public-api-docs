@@ -1,236 +1,162 @@
 ---
 title: 'Quickstart'
-description: 'Get up and running with the Influship API in under 10 minutes'
+description: 'Get up and running with the Influship API in 5 minutes'
 ---
 
-# Quickstart Guide
+# Quickstart
 
-Welcome to the Influship API! This guide will help you get started with our AI-powered influencer discovery and analysis platform.
+Get started with the Influship API in just a few minutes. This guide will help you make your first API call and understand the basics.
 
 ## Prerequisites
 
-Before you begin, make sure you have:
-
-- A valid email address for account creation
-- Basic knowledge of REST APIs and JSON
-- A code editor or API testing tool (we recommend [Postman](https://postman.com) or [Insomnia](https://insomnia.rest/))
+- An API key from the [Influship Dashboard](https://dashboard.influship.com)
+- A tool to make HTTP requests (curl, Postman, or your preferred client)
 
 ## Step 1: Get Your API Key
 
 <Steps>
-<Step title="Create an account">
-  Visit the [Influship Dashboard](https://dashboard.influship.com) and sign up for a new account.
+<Step title="Sign up">
+  Visit the [Influship Dashboard](https://dashboard.influship.com) and create your account.
 </Step>
 
-<Step title="Generate an API key">
-  Once logged in, navigate to the "API Keys" section and click "Generate New Key".
-  
-  <Warning>
-  Keep your API key secure! Never share it publicly or commit it to version control.
-  </Warning>
+<Step title='Generate API key'>
+  Navigate to **API Keys** and click **Generate New Key**.
 </Step>
 
-<Step title="Copy your API key">
-  Copy the generated API key and store it securely. You'll need it for all API requests.
+<Step title="Copy your key">
+  Your API key will be displayed only once. Copy it and store it securely.
 </Step>
 </Steps>
 
 ## Step 2: Test the API
 
-<Steps>
-<Step title="Test the health endpoint">
-  Start with a simple health check to verify your API key works:
-  
-  ```bash
-  curl -H "X-API-Key: YOUR_API_KEY" \
-    https://api.influship.com/health
-  ```
-  
-  You should receive a response like:
-  
-  ```json
-  {
-    "ok": true,
-    "timestamp": "2025-01-15T10:30:00Z",
-    "uptime": 12345,
-    "version": "0.1.0"
-  }
-  ```
-</Step>
+Start with a simple health check:
 
-<Step title="Test authentication">
-  Try making a request without an API key to see the authentication error:
-  
-  ```bash
-  curl https://api.influship.com/health
-  ```
-  
-  This should return a 401 Unauthorized error.
-</Step>
-</Steps>
+<RequestExample>
+  ```bash cURL curl -X GET 'https://api.influship.com/health' \ -H 'X-API-Key:
+  YOUR_API_KEY' ```
+</RequestExample>
+
+<ResponseExample>
+```json Success Response
+{
+  "ok": true
+}
+```
+</ResponseExample>
 
 ## Step 3: Search for Creators
 
-<Steps>
-<Step title="Make your first search">
-  Now let's search for some creators. Use a natural language query:
-  
-  ```bash
-  curl -X POST https://api.influship.com/v1/search \
-    -H "X-API-Key: YOUR_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d '{
-      "query": "fitness influencers with high engagement",
-      "filters": {
-        "min_followers": 10000,
-        "engagement_rate": {
-          "min": 0.03
-        }
-      },
-      "limit": 10
-    }'
-  ```
-</Step>
+Search for influencers using natural language:
 
-<Step title="Understand the response">
-  The response will include:
-  - `items`: Array of creator profiles
-  - `filtered_total`: Total number of matching creators
-  - `has_more`: Whether there are more results
-  - `next_cursor`: For pagination
-  
-  Each creator includes:
-  - Basic profile information
-  - Engagement metrics
-  - AI recommendation score and explanation
-  - Content preview
-</Step>
-</Steps>
+<RequestExample>
+```bash cURL
+curl -X POST 'https://api.influship.com/v1/search' \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "fitness influencers with high engagement",
+    "filters": {
+      "min_followers": 10000,
+      "platforms": ["instagram"]
+    },
+    "limit": 5
+  }'
+```
+</RequestExample>
 
-## Step 4: Enrich Creator Data
-
-<Steps>
-<Step title="Get detailed creator information">
-  Use a creator ID from your search results to get more detailed information:
-  
-  ```bash
-  curl -H "X-API-Key: YOUR_API_KEY" \
-    "https://api.influship.com/v1/creators/CREATOR_ID?mode=detailed"
-  ```
-</Step>
-
-<Step title="Get profile by handle">
-  You can also get creator data by their platform handle:
-  
-  ```bash
-  curl -H "X-API-Key: YOUR_API_KEY" \
-    "https://api.influship.com/v1/creators/instagram/username?mode=detailed"
-  ```
-</Step>
-</Steps>
-
-## Step 5: Analyze Content
-
-<Steps>
-<Step title="Analyze a post">
-  Analyze an Instagram post for content insights:
-  
-  ```bash
-  curl -X POST https://api.influship.com/v1/posts/analyze \
-    -H "X-API-Key: YOUR_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d '{
+<ResponseExample>
+```json Search Results
+{
+  "items": [
+    {
+      "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W",
+      "name": "Sarah Johnson",
+      "username": "sarahfitness",
       "platform": "instagram",
-      "url": "https://instagram.com/p/POST_ID",
-      "mode": "detailed"
-    }'
-  ```
-</Step>
+      "followers": 125000,
+      "engagement_rate": 0.045,
+      "verified": true,
+      "ai_score": 0.92,
+      "ai_explanation": "High engagement rate and consistent fitness content"
+    }
+  ],
+  "filtered_total": 45,
+  "has_more": true,
+  "next_cursor": "eyJvZmZzZXQiOjEwfQ=="
+}
+```
+</ResponseExample>
 
-<Step title="Review the analysis">
-  The response includes:
-  - Post metadata (likes, comments, views)
-  - Content analysis (topics, hashtags, mentions)
-  - Brand safety rating
-  - Call-to-action detection
-  - Product mentions
-</Step>
-</Steps>
+## Step 4: Get Creator Details (batch via array)
 
-## Step 6: Match Creators to Campaigns
+Request multiple creators by ID (array; can be one item):
 
-<Steps>
-<Step title="Score creators for a campaign">
-  Use match scoring to find the best creators for your campaign:
-  
-  ```bash
-  curl -X POST https://api.influship.com/v1/match \
-    -H "X-API-Key: YOUR_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d '{
-      "creators": [
-        {"id": "CREATOR_ID_1"},
-        {"id": "CREATOR_ID_2"}
-      ],
-      "search_intent": {
-        "query": "sustainable fashion campaign",
-        "context": "Looking for eco-conscious fashion influencers"
-      }
-    }'
-  ```
-</Step>
+<RequestExample>
+```bash cURL
+curl -X POST 'https://api.influship.com/v1/creators' \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "creator_ids": ["00000000-0000-0000-0000-000000000000"],
+    "mode": "detailed",
+    "result_scope": "all_platforms",
+    "include": ["emails"]
+  }'
+```
+</RequestExample>
 
-<Step title="Review match scores">
-  Each creator gets:
-  - Match score (0.0 to 1.0)
-  - Decision category (good, neutral, avoid)
-  - Detailed explanation
-  - Supporting evidence
-</Step>
-</Steps>
+## What's Working Now
+
+<CardGroup cols={2}>
+<Card title="✅ Health Check" icon="check">
+  Basic API health monitoring
+</Card>
+
+<Card title='✅ Creator Search' icon='search'>
+  AI-powered influencer discovery
+</Card>
+
+<Card title='✅ Creator Details' icon='user'>
+  Detailed creator profiles
+</Card>
+
+<Card title="⚠️ Content Analysis" icon="clock">
+  Coming soon - post analysis
+</Card>
+</CardGroup>
+
+## Rate Limits
+
+- **Free tier**: 1,000 requests per hour
+- **Pro tier**: 10,000 requests per hour
+
+Rate limit info is in response headers: `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+
+## Error Handling
+
+<ResponseExample>
+```json Error Response
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "The request is missing required parameters",
+    "details": {
+      "missing_fields": ["query"]
+    }
+  }
+}
+```
+</ResponseExample>
 
 ## Next Steps
 
-Now that you've completed the quickstart, here are some recommended next steps:
-
 <CardGroup cols={2}>
-  <Card title="Read the API Reference" icon="book" href="/api-reference/introduction">
-    Detailed documentation for all endpoints and parameters
-  </Card>
-  <Card title="Check Implementation Status" icon="info-circle" href="/implementation-status">
-    See what's currently working and what's in development
-  </Card>
-  <Card title="Explore Code Examples" icon="code" href="/examples/javascript">
-    Ready-to-use code samples in multiple languages
-  </Card>
-  <Card title="Learn Best Practices" icon="lightbulb" href="/guides/error-handling">
-    Tips for building robust integrations
-  </Card>
+<Card title="API Reference" icon="book" href="/api-reference">
+  Complete endpoint documentation
+</Card>
+
+<Card title="Code Examples" icon="code" href="/examples">
+  Working examples in multiple languages
+</Card>
 </CardGroup>
-
-## Common Issues
-
-### Authentication Errors
-- **401 Unauthorized**: Check that your API key is correct and included in the `X-API-Key` header
-- **403 Forbidden**: Your API key may be inactive or have insufficient permissions
-
-### Empty Search Results
-- The API requires proper database setup with creator data
-- Check the [Implementation Status](/implementation-status) for current limitations
-
-### Rate Limiting
-- You may hit rate limits if you make too many requests
-- Check the `RateLimit-*` headers in responses
-- Implement exponential backoff for retries
-
-## Need Help?
-
-If you run into any issues:
-
-- **Email**: [support@influship.com](mailto:support@influship.com)
-- **Documentation**: Browse our [API Reference](/api-reference/introduction)
-- **Status**: Check [status.influship.com](https://status.influship.com) for service updates
-
-<Note>
-This quickstart covers the basic functionality. For advanced features like batch processing and webhooks, see our [Guides](/guides/finding-influencers) section.
-</Note>

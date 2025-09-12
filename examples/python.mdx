@@ -126,7 +126,7 @@ async def search_fitness_influencers():
             filters={
                 "min_followers": 10000,
                 "engagement_rate": {"min": 0.03},
-                "platforms": ["instagram"]
+                "platform": ["instagram"]
             },
             limit=10
         )

@@ -89,7 +89,7 @@ curl -X POST https://api.influship.com/v1/search \
       "engagement_rate": {
         "min": 0.03
       },
-      "platforms": ["instagram"],
+      "platform": ["instagram"],
       "verified": true
     },
     "limit": 10
@@ -419,7 +419,7 @@ BASE_URL="https://api.influship.com"
 endpoints=(
     "GET /health"
     "POST /v1/search"
-    "GET /v1/creators/test_id"
+    "POST /v1/creators"
 )
 
 for endpoint in "${endpoints[@]}"; do

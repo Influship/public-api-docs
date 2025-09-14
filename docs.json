@@ -15,7 +15,7 @@
         "groups": [
           {
             "group": "Get Started",
-            "pages": ["index", "quickstart", "implementation-status"]
+            "pages": ["index", "quickstart"]
           },
           {
             "group": "Authentication",

@@ -20,6 +20,10 @@
           {
             "group": "Authentication",
             "pages": ["guides/authentication"]
+          },
+          {
+            "group": "Best Practices",
+            "pages": ["guides/autocomplete-best-practices"]
           }
         ]
       },

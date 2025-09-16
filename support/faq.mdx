@@ -16,8 +16,8 @@ description: 'Frequently asked questions about the Influship API'
 
 ### What's the difference between free and pro tiers?
 
-- **Free**: 1,000 requests per hour, basic features
-- **Pro**: 10,000 requests per hour, all features
+- **Free**: 1,000 requests per hour, basic creator search and profiles
+- **Pro**: 10,000 requests per hour, advanced features including email discovery, brand safety analysis, and lookalike matching
 
 ### How do I test if my API key works?
 
@@ -31,7 +31,12 @@ curl -H "X-API-Key: YOUR_KEY" https://api.influship.com/health
 
 ### Why am I getting empty search results?
 
-The search endpoint requires proper database setup with creator data. Check the [Implementation Status](/implementation-status) page for details.
+This usually happens when:
+- Your search query is too specific or narrow
+- The creator database doesn't have data for your target criteria
+- You're using filters that exclude all available creators
+
+Try broadening your search terms or removing some filters.
 
 ### What platforms are supported?
 
@@ -46,8 +51,8 @@ Rate limit information is in response headers:
 
 ### What's the difference between lite and detailed mode?
 
-- **Lite**: Basic information (default)
-- **Detailed**: Additional metrics and contact information
+- **Lite**: Basic creator information including followers, engagement rate, and verification status (default)
+- **Detailed**: Extended metrics, additional platform profiles, and premium data like email addresses (requires `include: ["emails"]`)
 
 ## Errors
 

@@ -76,9 +76,20 @@ class InflushipClient {
     });
   }
 
-  // Get creator by ID
-  async getCreator(id, mode = 'lite') {
-    return this.request(`/v1/creators/${id}?mode=${mode}`);
+  // Get multiple creators by ID
+  async getCreators(creatorIds, mode = 'lite') {
+    return this.request('/v1/creators', {
+      method: 'POST',
+      body: JSON.stringify({ creator_ids: creatorIds, mode })
+    });
+  }
+
+  // Get multiple platform profiles
+  async getProfiles(profiles, mode = 'lite') {
+    return this.request('/v1/profiles', {
+      method: 'POST',
+      body: JSON.stringify({ profiles, mode })
+    });
   }
 
   // Analyze post
@@ -132,7 +143,7 @@ async function searchFitnessInfluencers() {
 
     console.log(`Found ${results.items.length} creators`);
     results.items.forEach(creator => {
-      console.log(`${creator.name} (@${creator.username}) - ${creator.followers} followers`);
+      console.log(`${creator.name} (@${creator.username}) - ${creator.follower_count} followers`);
     });
 
     return results;
@@ -149,12 +160,13 @@ searchFitnessInfluencers();
 ```javascript
 async function getCreatorDetails(creatorId) {
   try {
-    const creator = await client.getCreator(creatorId, 'detailed');
+    const response = await client.getCreators([creatorId], 'detailed');
+    const creator = response.creators[0];
     
     console.log('Creator Details:');
     console.log(`Name: ${creator.name}`);
     console.log(`Username: ${creator.username}`);
-    console.log(`Followers: ${creator.followers.toLocaleString()}`);
+    console.log(`Followers: ${creator.follower_count.toLocaleString()}`);
     console.log(`Engagement Rate: ${(creator.engagement_rate * 100).toFixed(2)}%`);
     console.log(`Bio: ${creator.bio}`);
     
@@ -169,7 +181,7 @@ async function getCreatorDetails(creatorId) {
 }
 
 // Usage
-getCreatorDetails('cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W');
+getCreatorDetails('00000000-0000-0000-0000-000000000000');
 ```
 
 ### 4. Analyze Instagram Post
@@ -210,17 +222,26 @@ async function enrichMultipleCreators(creatorIds) {
   for (let i = 0; i < creatorIds.length; i += batchSize) {
     const batch = creatorIds.slice(i, i + batchSize);
     
-    const promises = batch.map(async (id) => {
+    const promises = batch.map(async (batchIds) => {
       try {
-        const creator = await client.getCreator(id, 'detailed');
-        return { id, success: true, data: creator };
+        const response = await client.getCreators(batchIds, 'detailed');
+        return { success: true, data: response.creators };
       } catch (error) {
-        return { id, success: false, error: error.message };
+        return { success: false, error: error.message };
       }
     });
     
     const batchResults = await Promise.all(promises);
-    results.push(...batchResults);
+    
+    for (const result of batchResults) {
+      if (result.success) {
+        for (const creator of result.data) {
+          results.push({ id: creator.id, success: true, data: creator });
+        }
+      } else {
+        results.push({ success: false, error: result.error });
+      }
+    }
     
     // Add delay between batches
     if (i + batchSize < creatorIds.length) {
@@ -233,8 +254,8 @@ async function enrichMultipleCreators(creatorIds) {
 
 // Usage
 const creatorIds = [
-  'cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W',
-  'cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X'
+  '00000000-0000-0000-0000-000000000000',
+  '00000000-0000-0000-0000-000000000001'
 ];
 
 enrichMultipleCreators(creatorIds).then(results => {
@@ -317,14 +338,20 @@ async function findAndAnalyzeCreators() {
     console.log(`📊 Analyzing ${searchResults.items.length} creators...`);
     const creators = [];
     
-    for (const item of searchResults.items) {
-      try {
-        const creator = await client.getCreator(item.id, 'detailed');
-        creators.push(creator);
-        console.log(`✅ Analyzed: ${creator.name} (${creator.followers} followers)`);
-      } catch (error) {
-        console.log(`❌ Failed to analyze: ${item.name} - ${error.message}`);
+    // Get all creator IDs from search results
+    const creatorIds = searchResults.items.map(item => item.id);
+    
+    // Get detailed information for all creators at once
+    try {
+      const creatorsResponse = await client.getCreators(creatorIds, 'detailed');
+      creators.push(...creatorsResponse.creators);
+      
+      for (const creator of creatorsResponse.creators) {
+        console.log(`✅ Analyzed: ${creator.name} (${creator.follower_count} followers)`);
       }
+    } catch (error) {
+      console.log(`❌ Failed to analyze creators: ${error.message}`);
+      return;
     }
     
     // Step 3: Sort by engagement rate
@@ -334,7 +361,7 @@ async function findAndAnalyzeCreators() {
     console.log('\n🏆 Top Creators by Engagement:');
     creators.forEach((creator, index) => {
       console.log(`${index + 1}. ${creator.name} (@${creator.username})`);
-      console.log(`   Followers: ${creator.followers.toLocaleString()}`);
+      console.log(`   Followers: ${creator.follower_count.toLocaleString()}`);
       console.log(`   Engagement: ${(creator.engagement_rate * 100).toFixed(2)}%`);
       console.log(`   Bio: ${creator.bio}`);
       console.log('');
@@ -361,7 +388,7 @@ export interface Creator {
   name: string;
   username: string;
   platform: string;
-  followers: number;
+  follower_count: number;
   engagement_rate: number;
   verified: boolean;
   bio?: string;

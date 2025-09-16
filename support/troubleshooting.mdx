@@ -37,10 +37,10 @@ Common issues and how to resolve them.
 
 **Solutions**:
 
-- Check the [Implementation Status](/implementation-status) page
-- Verify database setup requirements
-- Try broader search terms
-- Check if you're using the correct filters
+- Try broader search terms (e.g., "fitness" instead of "vegan fitness yoga instructor")
+- Remove restrictive filters like `min_followers` or `platform`
+- Check that your query is in natural language format
+- Verify the search endpoint is working with a simple test query
 
 ### Search Errors
 
@@ -95,9 +95,10 @@ Common issues and how to resolve them.
 
 **Solutions**:
 
-- Verify the creator ID is correct
-- Check if the creator exists in the database
-- Try using the profile endpoint instead
+- Verify the creator ID is a valid UUID format
+- Check if the creator exists by searching for them first
+- Try using `mode=detailed` for more comprehensive data
+- Ensure you're using the correct endpoint (`/v1/creators` for batch requests)
 
 ### Incomplete Profile Information
 
@@ -105,9 +106,10 @@ Common issues and how to resolve them.
 
 **Solutions**:
 
-- Use `mode=detailed` parameter
-- Check if the creator has public profiles
-- Verify the platform supports the requested data
+- Use `mode=detailed` parameter for extended metrics
+- Add `include: ["emails"]` for contact information (Pro tier)
+- Use `result_scope: "all_platforms"` to get data from all known platforms
+- Check if the creator has public profiles on the requested platforms
 
 ## Getting More Help
 

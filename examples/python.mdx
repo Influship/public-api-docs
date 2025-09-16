@@ -79,9 +79,21 @@ class InflushipClient:
         
         return await self.request("/v1/search", method="POST", json=data)
 
-    async def get_creator(self, creator_id: str, mode: str = "lite") -> Dict[str, Any]:
-        """Get creator details"""
-        return await self.request(f"/v1/creators/{creator_id}?mode={mode}")
+    async def get_creators(self, creator_ids: list[str], mode: str = "lite") -> Dict[str, Any]:
+        """Get multiple creator details"""
+        data = {
+            "creator_ids": creator_ids,
+            "mode": mode
+        }
+        return await self.request("/v1/creators", method="POST", json=data)
+
+    async def get_profiles(self, profiles: list[dict], mode: str = "lite") -> Dict[str, Any]:
+        """Get multiple platform profiles"""
+        data = {
+            "profiles": profiles,
+            "mode": mode
+        }
+        return await self.request("/v1/profiles", method="POST", json=data)
 
     async def analyze_post(self, platform: str, url: str, mode: str = "lite") -> Dict[str, Any]:
         """Analyze a post"""
@@ -133,7 +145,7 @@ async def search_fitness_influencers():
         
         print(f"Found {len(results['items'])} creators")
         for creator in results['items']:
-            print(f"{creator['name']} (@{creator['username']}) - {creator['followers']} followers")
+            print(f"{creator['name']} (@{creator['username']}) - {creator['follower_count']} followers")
         
         return results
     except Exception as e:
@@ -150,12 +162,13 @@ async def get_creator_details(creator_id: str):
     client = InflushipClient()
     
     try:
-        creator = await client.get_creator(creator_id, mode="detailed")
+        response = await client.get_creators([creator_id], mode="detailed")
+        creator = response['creators'][0]
         
         print("Creator Details:")
         print(f"Name: {creator['name']}")
         print(f"Username: {creator['username']}")
-        print(f"Followers: {creator['followers']:,}")
+        print(f"Followers: {creator['follower_count']:,}")
         print(f"Engagement Rate: {creator['engagement_rate']:.2%}")
         print(f"Bio: {creator.get('bio', 'N/A')}")
         
@@ -167,7 +180,7 @@ async def get_creator_details(creator_id: str):
         print(f"Failed to get creator details: {e}")
 
 # Usage
-creator_id = "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+creator_id = "00000000-0000-0000-0000-000000000000"
 asyncio.run(get_creator_details(creator_id))
 ```
 
@@ -212,17 +225,17 @@ async def enrich_multiple_creators(creator_ids: list):
         batch = creator_ids[i:i + batch_size]
         
         tasks = []
-        for creator_id in batch:
-            task = client.get_creator(creator_id, mode="detailed")
-            tasks.append(task)
+        task = client.get_creators(batch, mode="detailed")
+        tasks.append(task)
         
         batch_results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        for creator_id, result in zip(batch, batch_results):
+        for result in batch_results:
             if isinstance(result, Exception):
-                results.append({"id": creator_id, "success": False, "error": str(result)})
+                results.append({"success": False, "error": str(result)})
             else:
-                results.append({"id": creator_id, "success": True, "data": result})
+                for creator in result['creators']:
+                    results.append({"id": creator['id'], "success": True, "data": creator})
         
         # Add delay between batches
         if i + batch_size < len(creator_ids):
@@ -232,8 +245,8 @@ async def enrich_multiple_creators(creator_ids: list):
 
 # Usage
 creator_ids = [
-    "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W",
-    "cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X"
+    "00000000-0000-0000-0000-000000000000",
+    "00000000-0000-0000-0000-000000000001"
 ]
 
 results = asyncio.run(enrich_multiple_creators(creator_ids))
@@ -322,13 +335,19 @@ async def find_and_analyze_creators():
         print(f"📊 Analyzing {len(search_results['items'])} creators...")
         creators = []
         
-        for item in search_results['items']:
-            try:
-                creator = await client.get_creator(item['id'], mode="detailed")
-                creators.append(creator)
-                print(f"✅ Analyzed: {creator['name']} ({creator['followers']:,} followers)")
-            except Exception as e:
-                print(f"❌ Failed to analyze: {item['name']} - {e}")
+        # Get all creator IDs from search results
+        creator_ids = [item['id'] for item in search_results['items']]
+        
+        # Get detailed information for all creators at once
+        try:
+            creators_response = await client.get_creators(creator_ids, mode="detailed")
+            creators = creators_response['creators']
+            
+            for creator in creators:
+                print(f"✅ Analyzed: {creator['name']} ({creator['follower_count']:,} followers)")
+        except Exception as e:
+            print(f"❌ Failed to analyze creators: {e}")
+            return
         
         # Step 3: Sort by engagement rate
         creators.sort(key=lambda x: x['engagement_rate'], reverse=True)
@@ -337,7 +356,7 @@ async def find_and_analyze_creators():
         print("\n🏆 Top Creators by Engagement:")
         for i, creator in enumerate(creators, 1):
             print(f"{i}. {creator['name']} (@{creator['username']})")
-            print(f"   Followers: {creator['followers']:,}")
+            print(f"   Followers: {creator['follower_count']:,}")
             print(f"   Engagement: {creator['engagement_rate']:.2%}")
             print(f"   Bio: {creator.get('bio', 'N/A')}")
             print()
@@ -408,6 +427,14 @@ class InflushipClientSync:
             data["limit"] = limit
         
         return self.request("/v1/search", method="POST", json=data)
+
+    def get_creators(self, creator_ids: list[str], mode: str = "lite") -> Dict[str, Any]:
+        """Get multiple creator details"""
+        data = {
+            "creator_ids": creator_ids,
+            "mode": mode
+        }
+        return self.request("/v1/creators", method="POST", json=data)
 
 # Usage
 client = InflushipClientSync()

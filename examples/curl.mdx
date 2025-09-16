@@ -39,9 +39,15 @@ Expected response:
 ```json
 {
   "ok": true,
-  "timestamp": "2025-01-15T10:30:00Z",
+  "timestamp": "2025-01-15T10:30:00.000Z",
   "uptime": 12345,
-  "version": "0.1.0"
+  "memory": {
+    "rss": 50000000,
+    "heapTotal": 30000000,
+    "heapUsed": 20000000
+  },
+  "version": "0.1.0",
+  "environment": "production"
 }
 ```
 
@@ -58,7 +64,8 @@ Expected response:
 {
   "error": {
     "code": "unauthorized",
-    "message": "API key is required"
+    "message": "API key missing or invalid",
+    "request_id": "req_123456789"
   }
 }
 ```
@@ -121,32 +128,45 @@ curl -X POST https://api.influship.com/v1/search \
 
 ## Creator Enrichment Examples
 
-### 6. Get Creator by ID (Lite Mode)
+### 6. Get Multiple Creators by ID (Lite Mode)
 
 ```bash
-curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
-  "https://api.influship.com/v1/creators/cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W?mode=lite"
+curl -X POST https://api.influship.com/v1/creators \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "creator_ids": ["00000000-0000-0000-0000-000000000000"],
+    "mode": "lite"
+  }'
 ```
 
-### 7. Get Creator by ID (Detailed Mode)
+### 7. Get Multiple Creators by ID (Detailed Mode)
 
 ```bash
-curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
-  "https://api.influship.com/v1/creators/cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W?mode=detailed"
+curl -X POST https://api.influship.com/v1/creators \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "creator_ids": ["00000000-0000-0000-0000-000000000000"],
+    "mode": "detailed"
+  }'
 ```
 
-### 8. Get Creator by Platform Handle
+### 8. Get Multiple Platform Profiles by Username
 
 ```bash
-curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
-  "https://api.influship.com/v1/creators/instagram/username?mode=detailed"
-```
-
-### 9. Get Profile by Handle
-
-```bash
-curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
-  "https://api.influship.com/v1/profiles/instagram/username?mode=detailed"
+curl -X POST https://api.influship.com/v1/profiles \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "profiles": [
+      {
+        "platform": "instagram",
+        "username": "username"
+      }
+    ],
+    "mode": "detailed"
+  }'
 ```
 
 ## Post Analysis Examples
@@ -186,9 +206,9 @@ curl -X POST https://api.influship.com/v1/lookalike \
   -H "X-API-Key: $INFLUSHIP_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "seed_creators": [
+    "seeds": [
       {
-        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+        "id": "00000000-0000-0000-0000-000000000000"
       }
     ],
     "limit": 10
@@ -202,12 +222,12 @@ curl -X POST https://api.influship.com/v1/lookalike \
   -H "X-API-Key: $INFLUSHIP_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "seed_creators": [
+    "seeds": [
       {
-        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+        "id": "00000000-0000-0000-0000-000000000000"
       },
       {
-        "id": "cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X"
+        "id": "00000000-0000-0000-0000-000000000001"
       }
     ],
     "limit": 20
@@ -225,10 +245,10 @@ curl -X POST https://api.influship.com/v1/match \
   -d '{
     "creators": [
       {
-        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+        "id": "00000000-0000-0000-0000-000000000000"
       },
       {
-        "id": "cr_02HZ8K9M2N3P4Q5R6S7T8U9V0X"
+        "id": "00000000-0000-0000-0000-000000000001"
       }
     ],
     "search_intent": {
@@ -264,66 +284,37 @@ curl -X DELETE \
 
 ## Canonical Endpoint Examples
 
-### 18. Batch Enrichment (Planned)
+### 18. Get Multiple Creators with Emails
 
 ```bash
-curl -X POST https://api.influship.com/v1/enrich \
+curl -X POST https://api.influship.com/v1/creators \
   -H "X-API-Key: $INFLUSHIP_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "targets": [
-      {
-        "type": "creator",
-        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
-      },
-      {
-        "type": "profile",
-        "id": "instagram:username"
-      }
+    "creator_ids": [
+      "00000000-0000-0000-0000-000000000000",
+      "00000000-0000-0000-0000-000000000001"
     ],
-    "mode": "detailed"
+    "mode": "detailed",
+    "include": ["emails"]
   }'
 ```
 
-### 19. Batch Brand Safety (Planned)
+### 19. Get Multiple Platform Profiles
 
 ```bash
-curl -X POST https://api.influship.com/v1/brand-safety \
+curl -X POST https://api.influship.com/v1/profiles \
   -H "X-API-Key: $INFLUSHIP_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "targets": [
+    "profiles": [
       {
-        "type": "creator",
-        "id": "cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W"
+        "platform": "instagram",
+        "username": "fitnessguru"
       },
       {
-        "type": "post",
-        "id": "instagram:post_id"
-      }
-    ],
-    "options": {
-      "include_evidence": true,
-      "analysis_depth": "comprehensive"
-    }
-  }'
-```
-
-### 20. Batch Post Analysis (Planned)
-
-```bash
-curl -X POST https://api.influship.com/v1/analyze \
-  -H "X-API-Key: $INFLUSHIP_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "targets": [
-      {
-        "type": "post",
-        "id": "instagram:post_id_1"
-      },
-      {
-        "type": "post",
-        "url": "https://instagram.com/p/post_id_2"
+        "platform": "instagram",
+        "username": "wellnesscoach"
       }
     ],
     "mode": "detailed"
@@ -332,7 +323,7 @@ curl -X POST https://api.influship.com/v1/analyze \
 
 ## Error Handling Examples
 
-### 21. Handle Rate Limiting
+### 20. Handle Rate Limiting
 
 ```bash
 # Check rate limit headers
@@ -345,7 +336,7 @@ curl -I -H "X-API-Key: $INFLUSHIP_API_KEY" \
 # RateLimit-Reset: 1640995200
 ```
 
-### 22. Verbose Output for Debugging
+### 21. Verbose Output for Debugging
 
 ```bash
 curl -v -X POST https://api.influship.com/v1/search \
@@ -356,17 +347,19 @@ curl -v -X POST https://api.influship.com/v1/search \
   }'
 ```
 
-### 23. Save Response to File
+### 22. Save Response to File
 
 ```bash
-curl -H "X-API-Key: $INFLUSHIP_API_KEY" \
-  "https://api.influship.com/v1/creators/cr_01HZ8K9M2N3P4Q5R6S7T8U9V0W" \
+curl -X POST https://api.influship.com/v1/creators \
+  -H "X-API-Key: $INFLUSHIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"creator_ids": ["00000000-0000-0000-0000-000000000000"]}' \
   -o creator_response.json
 ```
 
 ## Testing Scripts
 
-### 24. Simple Test Script
+### 23. Simple Test Script
 
 Create a test script to verify your API key:
 
@@ -406,7 +399,7 @@ chmod +x test_api.sh
 ./test_api.sh
 ```
 
-### 25. Batch Testing Script
+### 24. Batch Testing Script
 
 ```bash
 #!/bin/bash

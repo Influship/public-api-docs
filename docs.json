@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Influship API",
   "colors": {
-    "primary": "#8B5CF6",
-    "light": "#A78BFA",
-    "dark": "#7C3AED"
+    "primary": "#16A34A",
+    "light": "#4ADE80",
+    "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -89,31 +89,18 @@
   "navbar": {
     "links": [
       {
-        "label": "Status",
-        "href": "https://status.influship.com"
-      },
-      {
         "label": "Support",
-        "href": "mailto:support@influship.com"
+        "href": "mailto:elliot@influship.com"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Get API Key",
-      "href": "https://dashboard.influship.com"
+      "href": "mailto:elliot@influship.com"
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude", "cursor", "vscode"]
   },
   "footer": {
     "socials": {

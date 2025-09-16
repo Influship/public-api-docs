@@ -9,15 +9,11 @@ The Influship API uses API key authentication. All requests must include your AP
 
 ## Getting Your API Key
 
-1. Sign up at [dashboard.influship.com](https://dashboard.influship.com)
-2. Navigate to **API Keys** section
-3. Click **Generate New Key**
-4. Copy and store your key securely
+Reach out to [elliot@influship.com](mailto:elliot@influship.com) to get an API key
 
-<Warning>
-  Your API key is displayed only once. Store it securely and never share it
-  publicly.
-</Warning>
+:::info Self-Serve Dashboard Coming Soon
+A self-serve API keys dashboard is coming soon, which will allow you to manage your API keys, view usage statistics, and monitor your rate limits directly from the web interface.
+:::
 
 ## Using Your API Key
 
@@ -50,31 +46,84 @@ response = requests.get(
 
 ## Error Responses
 
-### Invalid API Key
+### Invalid or Missing API Key
 
 <ResponseExample>
 ```json 401 Unauthorized
 {
   "error": {
-    "code": "invalid_api_key",
-    "message": "The provided API key is invalid or expired"
+    "code": "unauthorized",
+    "message": "API key missing or invalid",
+    "request_id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
 ```
 </ResponseExample>
 
-### Missing API Key
+### API Key Disabled (Payment Issues)
 
 <ResponseExample>
-```json 401 Unauthorized
+```json 403 Forbidden
 {
   "error": {
-    "code": "missing_authorization",
-    "message": "Authorization header is required"
+    "code": "payment_required",
+    "message": "API key is disabled due to payment issues. Please update your payment method.",
+    "request_id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
 ```
 </ResponseExample>
+
+### IP Not Allowed
+
+<ResponseExample>
+```json 403 Forbidden
+{
+  "error": {
+    "code": "forbidden",
+    "message": "IP not allowed for this API key",
+    "request_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+</ResponseExample>
+
+### Rate Limit Exceeded
+
+<ResponseExample>
+```json 429 Too Many Requests
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "Rate limit exceeded",
+    "request_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+</ResponseExample>
+
+### Daily Quota Exceeded
+
+<ResponseExample>
+```json 429 Too Many Requests
+{
+  "error": {
+    "code": "quota_exceeded",
+    "message": "Daily quota exceeded",
+    "request_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+</ResponseExample>
+
+## Rate Limiting
+
+The API includes rate limiting headers in all responses to help you monitor your usage:
+
+- `RateLimit-Limit`: Your requests per minute limit
+- `RateLimit-Remaining`: Remaining requests in the current minute
+- `RateLimit-Reset`: Unix timestamp when the rate limit resets
+- `Retry-After`: Seconds to wait before retrying (only present on 429 responses)
 
 ## Best Practices
 
@@ -82,3 +131,5 @@ response = requests.get(
 - Never commit API keys to version control
 - Use different keys for development and production
 - Rotate keys regularly for security
+- Monitor rate limit headers to avoid hitting limits
+- Implement exponential backoff when receiving 429 responses

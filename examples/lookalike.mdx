@@ -1,0 +1,394 @@
+---
+title: 'Lookalike Discovery Examples'
+description: 'Code examples for finding similar creators'
+---
+
+# Lookalike Discovery Examples
+
+Find creators similar to your seed profiles using AI-powered vector similarity search.
+
+## Basic Lookalike Request
+
+### cURL
+
+```bash
+curl -X POST https://api.influship.com/v1/lookalike \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "seeds": [
+      { "platform": "instagram", "username": "sarahfitness", "weight": 1.0 }
+    ]
+  }'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://api.influship.com/v1/lookalike', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    seeds: [
+      { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
+    ]
+  })
+});
+
+const data = await response.json();
+console.log(data.items);
+```
+
+### Python
+
+```python
+import requests
+
+url = 'https://api.influship.com/v1/lookalike'
+headers = {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+data = {
+    'seeds': [
+        {'platform': 'instagram', 'username': 'sarahfitness', 'weight': 1.0}
+    ]
+}
+
+response = requests.post(url, headers=headers, json=data)
+result = response.json()
+print(result['items'])
+```
+
+## Multiple Seed Creators
+
+### cURL
+
+```bash
+curl -X POST https://api.influship.com/v1/lookalike \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "seeds": [
+      { "id": "00000000-0000-0000-0000-000000000000", "weight": 1.0 },
+      { "platform": "instagram", "username": "fitnessguru", "weight": 0.8 },
+      { "platform": "instagram", "username": "wellnesscoach", "weight": 0.6 }
+    ]
+  }'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://api.influship.com/v1/lookalike', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    seeds: [
+      { id: '00000000-0000-0000-0000-000000000000', weight: 1.0 },
+      { platform: 'instagram', username: 'fitnessguru', weight: 0.8 },
+      { platform: 'instagram', username: 'wellnesscoach', weight: 0.6 }
+    ]
+  })
+});
+
+const data = await response.json();
+console.log(`Found ${data.items.length} similar creators`);
+```
+
+## With Comprehensive Filtering
+
+### cURL
+
+```bash
+curl -X POST https://api.influship.com/v1/lookalike \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "seeds": [
+      { "platform": "instagram", "username": "sarahfitness", "weight": 1.0 }
+    ],
+    "filters": {
+      "platform": ["instagram"],
+      "audience_size": { "min": 50000, "max": 500000 },
+      "engagement_rate": { "min": 0.03 },
+      "verified": true,
+      "country": ["US", "CA"],
+      "interests": ["fitness", "wellness"]
+    },
+    "mode": "detailed"
+  }'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://api.influship.com/v1/lookalike', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    seeds: [
+      { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
+    ],
+    filters: {
+      platform: ['instagram'],
+      audience_size: { min: 50000, max: 500000 },
+      engagement_rate: { min: 0.03 },
+      verified: true,
+      country: ['US', 'CA'],
+      interests: ['fitness', 'wellness']
+    },
+    mode: 'detailed'
+  })
+});
+
+const data = await response.json();
+data.items.forEach(creator => {
+  console.log(`${creator.name} (@${creator.username}) - ${creator.similarity} similarity`);
+});
+```
+
+### Python
+
+```python
+import requests
+
+url = 'https://api.influship.com/v1/lookalike'
+headers = {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+data = {
+    'seeds': [
+        {'platform': 'instagram', 'username': 'sarahfitness', 'weight': 1.0}
+    ],
+    'filters': {
+        'platform': ['instagram'],
+        'audience_size': {'min': 50000, 'max': 500000},
+        'engagement_rate': {'min': 0.03},
+        'verified': True,
+        'country': ['US', 'CA'],
+        'interests': ['fitness', 'wellness']
+    },
+    'mode': 'detailed'
+}
+
+response = requests.post(url, headers=headers, json=data)
+result = response.json()
+
+for creator in result['items']:
+    print(f"{creator['name']} (@{creator['username']}) - {creator['similarity']} similarity")
+```
+
+## Pagination
+
+### cURL
+
+```bash
+# First page
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://api.influship.com/v1/lookalike?limit=25"
+
+# Next page using cursor
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://api.influship.com/v1/lookalike?limit=25&cursor=eyJvZmZzZXQiOjI1fQ=="
+```
+
+### JavaScript
+
+```javascript
+async function getLookalikeCreators(cursor = null) {
+  const url = new URL('https://api.influship.com/v1/lookalike');
+  url.searchParams.set('limit', '25');
+  if (cursor) {
+    url.searchParams.set('cursor', cursor);
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-API-Key': 'YOUR_API_KEY',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      seeds: [
+        { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
+      ]
+    })
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+// Get first page
+const firstPage = await getLookalikeCreators();
+console.log('First page:', firstPage.items);
+
+// Get next page if available
+if (firstPage.has_more) {
+  const nextPage = await getLookalikeCreators(firstPage.next_cursor);
+  console.log('Next page:', nextPage.items);
+}
+```
+
+### Python
+
+```python
+import requests
+
+def get_lookalike_creators(cursor=None):
+    url = 'https://api.influship.com/v1/lookalike'
+    params = {'limit': 25}
+    if cursor:
+        params['cursor'] = cursor
+    
+    headers = {
+        'X-API-Key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'seeds': [
+            {'platform': 'instagram', 'username': 'sarahfitness', 'weight': 1.0}
+        ]
+    }
+    
+    response = requests.post(url, headers=headers, json=data, params=params)
+    return response.json()
+
+# Get first page
+first_page = get_lookalike_creators()
+print('First page:', first_page['items'])
+
+# Get next page if available
+if first_page['has_more']:
+    next_page = get_lookalike_creators(first_page['next_cursor'])
+    print('Next page:', next_page['items'])
+```
+
+## Error Handling
+
+### JavaScript
+
+```javascript
+async function findLookalikeCreators(seeds) {
+  try {
+    const response = await fetch('https://api.influship.com/v1/lookalike', {
+      method: 'POST',
+      headers: {
+        'X-API-Key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ seeds })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`API Error: ${error.error.message}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Lookalike request failed:', error.message);
+    throw error;
+  }
+}
+
+// Usage with error handling
+try {
+  const result = await findLookalikeCreators([
+    { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
+  ]);
+  console.log('Found creators:', result.items);
+} catch (error) {
+  console.error('Failed to find lookalike creators:', error.message);
+}
+```
+
+### Python
+
+```python
+import requests
+import json
+
+def find_lookalike_creators(seeds):
+    try:
+        url = 'https://api.influship.com/v1/lookalike'
+        headers = {
+            'X-API-Key': 'YOUR_API_KEY',
+            'Content-Type': 'application/json'
+        }
+        data = {'seeds': seeds}
+        
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        
+        return response.json()
+    except requests.exceptions.HTTPError as e:
+        error_data = e.response.json()
+        raise Exception(f"API Error: {error_data['error']['message']}")
+    except Exception as e:
+        print(f"Lookalike request failed: {e}")
+        raise
+
+# Usage with error handling
+try:
+    result = find_lookalike_creators([
+        {'platform': 'instagram', 'username': 'sarahfitness', 'weight': 1.0}
+    ])
+    print('Found creators:', result['items'])
+except Exception as e:
+    print(f'Failed to find lookalike creators: {e}')
+```
+
+## Advanced Use Cases
+
+### Campaign Expansion
+
+```javascript
+// Find creators similar to your best performers
+const topPerformers = [
+  { id: 'creator-1', weight: 1.0 },
+  { id: 'creator-2', weight: 0.8 },
+  { id: 'creator-3', weight: 0.6 }
+];
+
+const lookalikes = await findLookalikeCreators(topPerformers);
+console.log('Campaign expansion candidates:', lookalikes.items);
+```
+
+### Niche Discovery
+
+```python
+# Find creators in specific niches
+fitness_seeds = [
+    {'platform': 'instagram', 'username': 'fitnessguru', 'weight': 1.0},
+    {'platform': 'instagram', 'username': 'wellnesscoach', 'weight': 0.8}
+]
+
+fitness_lookalikes = find_lookalike_creators(fitness_seeds)
+print('Fitness niche creators:', fitness_lookalikes['items'])
+```
+
+### Competitor Analysis
+
+```javascript
+// Find creators similar to competitors' top performers
+const competitorSeeds = [
+  { platform: 'instagram', username: 'competitor1', weight: 1.0 },
+  { platform: 'instagram', username: 'competitor2', weight: 0.8 }
+];
+
+const competitorLookalikes = await findLookalikeCreators(competitorSeeds);
+console.log('Competitor analysis results:', competitorLookalikes.items);
+```

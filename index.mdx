@@ -37,6 +37,10 @@ AI-powered influencer discovery and analysis. Find the perfect creators for your
   Detailed creator profiles
 </Card>
 
+<Card title='✅ Lookalike Discovery' icon='users'>
+  AI-powered similar creator discovery
+</Card>
+
 <Card title="⚠️ Content Analysis" icon="clock">
   Coming soon
 </Card>
@@ -59,6 +63,15 @@ AI-powered influencer discovery and analysis. Find the perfect creators for your
     -H "X-API-Key: YOUR_KEY" \
     -H "Content-Type: application/json" \
     -d '{"query": "fitness influencers"}'
+  ```
+</Step>
+
+<Step title="Find lookalike creators">
+  ```bash
+  curl -X POST https://api.influship.com/v1/lookalike \
+    -H "X-API-Key: YOUR_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"seeds": [{"platform": "instagram", "username": "sarahfitness"}]}'
   ```
 </Step>
 </Steps>

@@ -1,0 +1,292 @@
+---
+title: 'Lookalike Discovery'
+description: 'Find similar creators using AI-powered vector similarity search'
+---
+
+# Lookalike Discovery
+
+Find creators similar to your seed profiles using AI-powered vector similarity search. The lookalike endpoint supports both creator IDs and platform usernames as seeds, with comprehensive filtering options.
+
+## Overview
+
+The lookalike discovery feature uses advanced AI to find creators with similar characteristics to your seed profiles. It analyzes content style, audience demographics, engagement patterns, and behavioral data to identify the most relevant matches.
+
+<Check>
+✅ Fully working
+</Check>
+
+## Supported Platforms
+
+Currently supported platforms for seed resolution:
+- **Instagram** ✅ (Fully supported)
+
+Future platforms (configured but not yet enabled):
+- TikTok (coming soon)
+- YouTube (coming soon)  
+- Twitter (coming soon)
+
+## Seed Types
+
+You can provide seeds in multiple ways:
+
+### Creator ID Seeds
+
+Use existing creator IDs from your database:
+
+```json
+{
+  "seeds": [
+    { "id": "00000000-0000-0000-0000-000000000000", "weight": 1.0 },
+    { "id": "00000000-0000-0000-0000-000000000001", "weight": 0.8 }
+  ]
+}
+```
+
+### Platform Username Seeds
+
+Use social media usernames directly:
+
+```json
+{
+  "seeds": [
+    { "platform": "instagram", "username": "sarahfitness", "weight": 1.0 },
+    { "platform": "instagram", "username": "fitnessguru", "weight": 0.8 }
+  ]
+}
+```
+
+### Mixed Seeds
+
+Combine both approaches:
+
+```json
+{
+  "seeds": [
+    { "id": "00000000-0000-0000-0000-000000000000", "weight": 1.0 },
+    { "platform": "instagram", "username": "fitnessguru", "weight": 0.8 }
+  ]
+}
+```
+
+## Comprehensive Filtering
+
+Apply detailed filters to refine your lookalike results:
+
+```json
+{
+  "seeds": [...],
+  "filters": {
+    "platform": ["instagram"],
+    "audience_size": {
+      "min": 10000,
+      "max": 1000000
+    },
+    "engagement_rate": {
+      "min": 0.02,
+      "max": 0.1
+    },
+    "verified": true,
+    "country": ["US", "CA"],
+    "interests": ["fitness", "wellness"],
+    "content_types": ["photos", "videos"]
+  }
+}
+```
+
+### Filter Options
+
+| Filter | Type | Description | Example |
+|--------|------|-------------|---------|
+| `platform` | Array | Platforms to include | `["instagram"]` |
+| `audience_size` | Object | Follower count range | `{"min": 10000, "max": 1000000}` |
+| `engagement_rate` | Object | Engagement rate range | `{"min": 0.02, "max": 0.1}` |
+| `verified` | Boolean | Verification status | `true` |
+| `country` | Array | Country codes (ISO 3166-1) | `["US", "CA"]` |
+| `interests` | Array | Content topics/interests | `["fitness", "wellness"]` |
+| `content_types` | Array | Content types | `["photos", "videos", "stories"]` |
+
+## Weight System
+
+Seed weights allow you to emphasize certain creators:
+
+- **Weight 1.0**: Standard importance
+- **Weight 0.5**: Half importance  
+- **Weight 2.0**: Double importance
+- **Range**: 0.1 to 10.0
+
+Higher weights make that seed more influential in the similarity calculation.
+
+## AI-Powered Similarity
+
+The lookalike algorithm uses advanced AI techniques:
+
+1. **Vector Embeddings**: Deep learning models analyze creator content and behavior
+2. **Multi-Factor Analysis**: Content style, audience demographics, engagement patterns
+3. **AI Reranking**: Final results are scored and ranked by AI for optimal relevance
+
+## Example Request
+
+```bash
+curl -X POST https://api.influship.com/v1/lookalike \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "seeds": [
+      { "platform": "instagram", "username": "sarahfitness", "weight": 1.0 }
+    ],
+    "filters": {
+      "platform": ["instagram"],
+      "audience_size": { "min": 50000, "max": 500000 },
+      "engagement_rate": { "min": 0.03 },
+      "verified": true
+    },
+    "mode": "detailed",
+    "result_scope": "seed_platform"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "items": [
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "name": "Emma Wilson",
+      "username": "emmawellness",
+      "platform": "instagram",
+      "similarity": 0.89,
+      "engagement_rate": 0.045,
+      "verified": true,
+      "follower_count": 125000,
+      "bio": "Wellness coach and fitness enthusiast",
+      "country": "US",
+      "profiles": [
+        {
+          "platform": "instagram",
+          "username": "emmawellness",
+          "follower_count": 125000,
+          "engagement_rate": 0.045,
+          "verified": true
+        }
+      ],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High similarity to seed creator with strong engagement and fitness focus"
+      }
+    }
+  ],
+  "filtered_total": 45,
+  "has_more": true,
+  "next_cursor": "eyJvZmZzZXQiOjI1fQ=="
+}
+```
+
+## Pagination
+
+Use cursor-based pagination to retrieve large result sets:
+
+```bash
+# First page
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://api.influship.com/v1/lookalike?limit=25"
+
+# Next page using cursor from previous response
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://api.influship.com/v1/lookalike?limit=25&cursor=eyJvZmZzZXQiOjI1fQ=="
+```
+
+## Error Handling
+
+### Creator Not Found (404)
+```json
+{
+  "error": {
+    "code": "creator_not_found",
+    "message": "Creator not found: instagram/fitnessguru",
+    "request_id": "req_123"
+  }
+}
+```
+
+### Invalid Seed (400)
+```json
+{
+  "error": {
+    "code": "invalid_seed", 
+    "message": "Username must be between 1 and 30 characters",
+    "request_id": "req_123"
+  }
+}
+```
+
+### Unsupported Platform (400)
+```json
+{
+  "error": {
+    "code": "invalid_seed",
+    "message": "Unsupported platform: tiktok. Currently supported: instagram",
+    "request_id": "req_123"
+  }
+}
+```
+
+## Pricing
+
+- **Base Cost**: 0.1 credits per request
+- **Per Seed**: 0.05 credits per seed creator
+- **Filtering**: No additional cost for comprehensive filtering
+- **AI Reranking**: Included in base cost
+
+**Example**: 2 seeds + detailed filtering = 0.2 credits
+
+## Best Practices
+
+### Seed Selection
+- Choose 2-5 diverse seed creators for best results
+- Use creators with clear, consistent content themes
+- Include both high and medium engagement creators
+
+### Filtering Strategy
+- Start with broad filters, then narrow down
+- Use audience size ranges to match your campaign goals
+- Filter by engagement rate to ensure quality
+
+### Performance Tips
+- Use `mode: "lite"` for faster responses when detailed data isn't needed
+- Set appropriate `limit` values (25-50 is optimal)
+- Cache results when possible to reduce API calls
+
+## Use Cases
+
+### Campaign Expansion
+Find creators similar to your best-performing influencers to expand your reach.
+
+### Competitor Analysis
+Discover creators with similar audiences to your competitors' top performers.
+
+### Niche Discovery
+Identify creators in specific niches by using niche-specific seed creators.
+
+### Audience Matching
+Find creators with audiences similar to your target demographic.
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="API Reference" icon="book" href="/api-reference">
+  Complete endpoint documentation
+</Card>
+
+<Card title="Examples" icon="code" href="/examples">
+  Code samples and tutorials
+</Card>
+
+<Card title="Authentication" icon="key" href="/guides/authentication">
+  API key setup
+</Card>
+
+<Card title="Support" icon="envelope" href="mailto:support@influship.com">
+  Get help
+</Card>
+</CardGroup>

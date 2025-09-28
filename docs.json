@@ -18,12 +18,34 @@
             "pages": ["index", "quickstart"]
           },
           {
+            "group": "Essentials",
+            "pages": [
+              "essentials/pricing",
+              "essentials/rate-limits"
+            ]
+          },
+          {
             "group": "Authentication",
             "pages": ["guides/authentication"]
           },
           {
             "group": "Best Practices",
-            "pages": ["guides/autocomplete-best-practices"]
+            "pages": [
+              "guides/autocomplete-best-practices",
+              "guides/campaign-discovery",
+              "guides/sdk-integration",
+              "guides/webhooks"
+            ]
+          },
+          {
+            "group": "Advanced Topics",
+            "pages": [
+              "guides/advanced-analytics",
+              "guides/data-science",
+              "guides/enterprise",
+              "guides/performance",
+              "guides/security"
+            ]
           }
         ]
       },

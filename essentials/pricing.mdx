@@ -1,0 +1,181 @@
+---
+title: 'Pricing & Credits'
+description: 'Understand Influship API pricing, credit system, and billing models'
+---
+
+# Pricing & Credits
+
+The Influship API uses a flexible credit-based pricing system that scales with your usage and needs.
+
+## Credit System Overview
+
+Credits are consumed based on the complexity and features of your API requests. All responses include billing information in headers.
+
+<Info>
+**Response Headers**: Every API response includes `X-Credits-Charged`, `X-Credits-Features`, and `X-Billing-Plan` headers so you can track your usage in real-time.
+</Info>
+
+## Pricing Models
+
+### 🔍 Search & Discovery
+
+**Creator Search** - Find influencers with AI-powered search
+- **Base cost**: 2.0 credits per creator returned
+- **Detailed mode**: +0.05 credits per social account
+- **Example**: 25 creators with detailed profiles = 2.0 × 25 + 0.05 × 50 = 52.5 credits
+
+**Lookalike Discovery** - Find similar creators
+- **Base cost**: 1.0 credit per creator returned  
+- **Detailed mode**: +0.05 credits per social account
+- **Example**: 20 lookalike creators = 1.0 × 20 = 20 credits
+
+### 👤 Creator Data
+
+**Creator Profiles** - Get detailed creator information
+- **Basic profile**: 0.1 credits per creator
+- **With social accounts**: +0.01-0.05 credits per social account (lite/detailed)
+- **With email data**: +0.5 credits per creator (Pro tier)
+
+**Profile Lookup** - Look up creators by username
+- **Lite mode**: 0.01 credits per profile
+- **Detailed mode**: 0.05 credits per profile
+
+### 📊 Content Analysis
+
+**Post Analysis** - Analyze individual posts
+- **Base cost**: 1.0 credit per post
+- **AI Analysis**: +0.5 credits per post
+- **Brand Safety**: +0.5 credits per post
+- **Example**: 10 posts with AI analysis = 1.0 × 10 + 0.5 × 10 = 15 credits
+
+**Posts by Creator** - Get creator's recent posts
+- **Cost**: 0.01 credits per request
+- **Pagination**: No additional cost for multiple pages
+
+### 🛡️ Brand Safety
+
+**Creator Brand Safety** - Analyze creators for brand safety
+- **Cost**: 2.0 credits per creator
+- **Bulk analysis**: Same rate, no discounts
+
+**Profile Brand Safety** - Analyze social accounts
+- **Cost**: 0.5 credits per social account
+
+**Post Brand Safety** - Analyze individual posts
+- **Cost**: 0.5 credits per post
+
+### 🔍 Additional Features
+
+**Autocomplete** - Search suggestions
+- **Cost**: 0.001 credits per request
+- **Very cost-effective for real-time search**
+
+**Creator Matching** - Match creators to campaigns
+- **Cost**: 0.1 credits per creator analyzed
+
+## Billing Plans
+
+### 🆓 Free Tier
+- **Credits**: 1,000 credits/month
+- **Rate limit**: 1,000 requests/hour
+- **Features**: Basic search, creator profiles, autocomplete
+- **Perfect for**: Testing, small projects, proof of concepts
+
+### 💼 Pro Tier
+- **Credits**: 10,000+ credits/month
+- **Rate limit**: 10,000 requests/hour
+- **Features**: All features including email data, advanced analytics
+- **Perfect for**: Production applications, agencies, enterprises
+
+### 🏢 Enterprise
+- **Credits**: Custom volume pricing
+- **Rate limit**: Custom limits
+- **Features**: All features + dedicated support, SLA, custom integrations
+- **Perfect for**: Large-scale operations, white-label solutions
+
+## Cost Optimization Tips
+
+<CardGroup cols={2}>
+<Card title="Use Lite Mode" icon="zap">
+  Start with lite mode for exploration, upgrade to detailed only when needed.
+</Card>
+
+<Card title="Batch Requests" icon="layers">
+  Combine multiple creator lookups into single requests to reduce overhead.
+</Card>
+
+<Card title="Cache Results" icon="database">
+  Cache frequently accessed data to avoid repeated API calls.
+</Card>
+
+<Card title="Filter Early" icon="filter">
+  Use search filters to reduce the number of creators returned.
+</Card>
+</CardGroup>
+
+## Real-World Cost Examples
+
+### Small Agency (Monthly)
+- **100 creator searches** (25 creators each): 2.0 × 2,500 = 5,000 credits
+- **500 creator profiles**: 0.1 × 500 = 50 credits
+- **50 post analyses**: 1.0 × 50 = 50 credits
+- **Total**: ~5,100 credits
+
+### Enterprise Campaign
+- **1,000 creator searches** (50 creators each): 2.0 × 50,000 = 100,000 credits
+- **2,000 creator profiles with emails**: 0.1 × 2,000 + 0.5 × 2,000 = 1,200 credits
+- **500 brand safety analyses**: 2.0 × 500 = 1,000 credits
+- **Total**: ~102,200 credits
+
+## Monitoring Your Usage
+
+### Response Headers
+Every API response includes usage information:
+
+```http
+X-Credits-Charged: 2.5
+X-Credits-Features: search,detailed
+X-Billing-Plan: pro
+RateLimit-Limit: 10000
+RateLimit-Remaining: 9997
+RateLimit-Reset: 1640995200
+```
+
+### Usage Dashboard
+Monitor your usage in real-time:
+- Current credit balance
+- Usage trends and patterns
+- Cost breakdown by endpoint
+- Projected monthly costs
+
+## Getting Started
+
+<Steps>
+<Step title="Choose Your Plan">
+  Start with the Free tier to explore the API, then upgrade based on your needs.
+</Step>
+
+<Step title="Monitor Usage">
+  Check response headers to understand your credit consumption patterns.
+</Step>
+
+<Step title="Optimize Costs">
+  Use lite mode for exploration, detailed mode for final analysis.
+</Step>
+
+<Step title="Scale Up">
+  Upgrade your plan as your usage grows and you need higher rate limits.
+</Step>
+</Steps>
+
+## Need Help?
+
+<CardGroup cols={2}>
+<Card title="Contact Sales" icon="envelope" href="mailto:elliot@influship.com">
+  Get custom pricing for high-volume usage
+</Card>
+
+<Card title="View Examples" icon="code" href="/examples">
+  See cost-effective implementation patterns
+</Card>
+</CardGroup>

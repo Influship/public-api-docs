@@ -1,0 +1,260 @@
+---
+title: 'Webhooks'
+description: 'Real-time notifications for creator updates and analysis results'
+---
+
+# Webhooks
+
+Receive real-time notifications when creators are updated, analysis completes, or other events occur in the Influship system.
+
+## Overview
+
+Webhooks allow you to receive instant notifications about events in the Influship system without polling the API. This is especially useful for:
+
+- **Creator Updates**: When creator profiles are refreshed with new data
+- **Analysis Results**: When brand safety or AI analysis completes
+- **System Events**: Rate limit warnings, account changes, etc.
+
+## Setting Up Webhooks
+
+### 1. Configure Webhook Endpoint
+
+In your dashboard, navigate to **Settings > Webhooks** and add your endpoint URL:
+
+```
+https://your-domain.com/webhooks/influship
+```
+
+### 2. Verify Endpoint
+
+Your endpoint must respond to verification requests:
+
+```javascript
+// Express.js example
+app.post('/webhooks/influship', (req, res) => {
+  if (req.headers['x-influship-event'] === 'webhook.verify') {
+    // Return the challenge token
+    res.json({ challenge: req.body.challenge });
+  } else {
+    // Handle actual webhook
+    handleWebhook(req.body);
+    res.status(200).send('OK');
+  }
+});
+```
+
+## Webhook Events
+
+### Creator Updated
+
+Triggered when a creator's profile data is refreshed:
+
+```json
+{
+  "event": "creator.updated",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "creator_id": "123e4567-e89b-12d3-a456-426614174000",
+    "updated_fields": ["follower_count", "engagement_rate"],
+    "platform": "instagram",
+    "username": "sarahfitness"
+  }
+}
+```
+
+### Analysis Complete
+
+Triggered when brand safety or AI analysis finishes:
+
+```json
+{
+  "event": "analysis.complete",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "analysis_id": "analysis_123",
+    "type": "brand_safety",
+    "creator_id": "123e4567-e89b-12d3-a456-426614174000",
+    "status": "completed",
+    "results_url": "https://api.influship.com/v1/analyses/analysis_123"
+  }
+}
+```
+
+### Rate Limit Warning
+
+Triggered when approaching rate limits:
+
+```json
+{
+  "event": "rate_limit.warning",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "current_usage": 950,
+    "limit": 1000,
+    "reset_time": "2024-01-15T11:00:00Z"
+  }
+}
+```
+
+## Security
+
+### Signature Verification
+
+All webhooks include a signature for verification:
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhook(payload, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+}
+
+// Usage
+app.post('/webhooks/influship', (req, res) => {
+  const signature = req.headers['x-influship-signature'];
+  const payload = JSON.stringify(req.body);
+  
+  if (!verifyWebhook(payload, signature, process.env.WEBHOOK_SECRET)) {
+    return res.status(401).send('Invalid signature');
+  }
+  
+  // Process webhook
+  handleWebhook(req.body);
+  res.status(200).send('OK');
+});
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+<Card title="Idempotency" icon="repeat">
+  Handle duplicate webhooks gracefully using event IDs or timestamps.
+</Card>
+
+<Card title="Timeouts" icon="clock">
+  Respond to webhooks within 5 seconds to avoid retries.
+</Card>
+
+<Card title="Retries" icon="refresh">
+  Implement exponential backoff for failed webhook processing.
+</Card>
+
+<Card title="Logging" icon="list">
+  Log all webhook events for debugging and monitoring.
+</Card>
+</CardGroup>
+
+## Error Handling
+
+### Retry Logic
+
+If your endpoint returns an error (4xx or 5xx), we'll retry with exponential backoff:
+
+- **1st retry**: 1 minute
+- **2nd retry**: 5 minutes  
+- **3rd retry**: 15 minutes
+- **4th retry**: 1 hour
+- **5th retry**: 4 hours
+
+### Dead Letter Queue
+
+After 5 failed attempts, the webhook is moved to a dead letter queue. You can:
+
+1. Check the webhook status in your dashboard
+2. Manually retry failed webhooks
+3. Download failed webhook payloads for debugging
+
+## Testing Webhooks
+
+### Local Development
+
+Use ngrok or similar tools to expose your local server:
+
+```bash
+# Install ngrok
+npm install -g ngrok
+
+# Expose local server
+ngrok http 3000
+
+# Use the HTTPS URL in your webhook configuration
+# https://abc123.ngrok.io/webhooks/influship
+```
+
+### Webhook Testing Tool
+
+Use our webhook testing tool to simulate events:
+
+```bash
+curl -X POST https://api.influship.com/v1/webhooks/test \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "event": "creator.updated",
+    "creator_id": "123e4567-e89b-12d3-a456-426614174000"
+  }'
+```
+
+## Monitoring
+
+### Webhook Status
+
+Check webhook delivery status in your dashboard:
+
+- **Delivered**: Successfully sent and acknowledged
+- **Pending**: Queued for delivery
+- **Failed**: Delivery failed after all retries
+- **Retrying**: Currently retrying after failure
+
+### Metrics
+
+Monitor webhook performance:
+
+- Delivery success rate
+- Average response time
+- Failed webhook count
+- Retry attempts
+
+## Common Issues
+
+### Webhook Not Received
+
+<AccordionGroup>
+<Accordion title="Check Endpoint URL">
+  - Verify the URL is accessible from the internet
+  - Ensure HTTPS is used (HTTP only for localhost)
+  - Check that the endpoint responds to POST requests
+</Accordion>
+
+<Accordion title="Verify Signature">
+  - Ensure you're using the correct webhook secret
+  - Check that signature verification is working
+  - Verify the payload format matches expectations
+</Accordion>
+
+<Accordion title="Check Logs">
+  - Review server logs for incoming requests
+  - Check for any error responses
+  - Verify request headers and body format
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="API Reference" icon="book" href="/api-reference">
+  Complete endpoint documentation
+</Card>
+
+<Card title="SDK Integration" icon="code" href="/guides/sdk-integration">
+  Learn how to integrate with your application
+</Card>
+</CardGroup>

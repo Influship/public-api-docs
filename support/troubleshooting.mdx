@@ -5,7 +5,29 @@ description: 'Common issues and solutions'
 
 # Troubleshooting
 
-Common issues and how to resolve them.
+Common issues and how to resolve them when using the Influship API.
+
+## Quick Diagnostics
+
+<Steps>
+<Step title="Check API Status">
+  Visit [status.influship.com](https://status.influship.com) to verify service availability.
+</Step>
+
+<Step title="Verify API Key">
+  Test your API key with a simple health check:
+  
+  ```bash
+  curl -H "X-API-Key: YOUR_KEY" https://api.influship.com/health
+  ```
+</Step>
+
+<Step title="Check Rate Limits">
+  Review response headers for rate limit information:
+  - `X-RateLimit-Remaining`: Requests left in current window
+  - `X-RateLimit-Reset`: When limits reset (Unix timestamp)
+</Step>
+</Steps>
 
 ## Authentication Issues
 

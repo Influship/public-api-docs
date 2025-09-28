@@ -1,0 +1,1026 @@
+---
+title: 'Security & Compliance'
+description: 'Comprehensive security framework, compliance standards, and advanced threat protection for enterprise environments'
+---
+
+# Security & Compliance
+
+Complete security framework covering threat protection, compliance standards, data privacy, and enterprise-grade security implementations.
+
+## Security Architecture Overview
+
+### Zero-Trust Security Model
+
+Implement comprehensive zero-trust security architecture:
+
+```yaml
+# security-architecture.yml
+security:
+  # Identity and Access Management
+  iam:
+    authentication:
+      methods: ['jwt', 'oauth2', 'saml', 'ldap']
+      mfa:
+        required: true
+        methods: ['totp', 'sms', 'push', 'hardware']
+      session:
+        timeout: 3600
+        refresh: true
+        secure: true
+    
+    authorization:
+      rbac:
+        enabled: true
+        roles: ['admin', 'user', 'readonly', 'analyst']
+        permissions: ['read', 'write', 'delete', 'admin']
+      abac:
+        enabled: true
+        policies:
+          - resource: 'creator_data'
+            action: 'read'
+            condition: 'user.department == "marketing"'
+  
+  # Network Security
+  network:
+    encryption:
+      in_transit: 'TLS 1.3'
+      at_rest: 'AES-256-GCM'
+      key_rotation: '30d'
+    
+    firewall:
+      rules:
+        - action: 'allow'
+          source: '10.0.0.0/8'
+          destination: 'api:443'
+        - action: 'deny'
+          source: '0.0.0.0/0'
+          destination: 'database:5432'
+    
+    vpn:
+      required: true
+      protocols: ['OpenVPN', 'WireGuard']
+  
+  # Data Protection
+  data_protection:
+    classification:
+      levels: ['public', 'internal', 'confidential', 'restricted']
+      encryption:
+        confidential: 'AES-256'
+        restricted: 'AES-256 + HSM'
+    
+    privacy:
+      gdpr:
+        enabled: true
+        data_retention: '7y'
+        right_to_erasure: true
+        data_portability: true
+      ccpa:
+        enabled: true
+        opt_out: true
+        data_sale: false
+```
+
+### Advanced Threat Protection
+
+Implement sophisticated threat detection and prevention:
+
+```javascript
+// threat-protection.js
+class AdvancedThreatProtection {
+  constructor(config) {
+    this.mlEngine = new MLThreatDetector(config.ml);
+    this.ruleEngine = new RuleEngine(config.rules);
+    this.behaviorAnalyzer = new BehaviorAnalyzer(config.behavior);
+    this.incidentResponse = new IncidentResponse(config.incident);
+  }
+
+  async analyzeRequest(request) {
+    const analysis = {
+      riskScore: 0,
+      threats: [],
+      recommendations: [],
+      action: 'allow'
+    };
+
+    // 1. ML-based threat detection
+    const mlAnalysis = await this.mlEngine.analyze(request);
+    if (mlAnalysis.riskScore > 0.7) {
+      analysis.threats.push('ml_detected_anomaly');
+      analysis.riskScore += mlAnalysis.riskScore * 0.4;
+    }
+
+    // 2. Rule-based detection
+    const ruleAnalysis = await this.ruleEngine.evaluate(request);
+    analysis.threats.push(...ruleAnalysis.threats);
+    analysis.riskScore += ruleAnalysis.riskScore * 0.3;
+
+    // 3. Behavioral analysis
+    const behaviorAnalysis = await this.behaviorAnalyzer.analyze(request);
+    if (behaviorAnalysis.anomalous) {
+      analysis.threats.push('behavioral_anomaly');
+      analysis.riskScore += behaviorAnalysis.riskScore * 0.3;
+    }
+
+    // 4. Determine action
+    if (analysis.riskScore > 0.8) {
+      analysis.action = 'block';
+      await this.incidentResponse.handleHighRisk(request, analysis);
+    } else if (analysis.riskScore > 0.5) {
+      analysis.action = 'challenge';
+      analysis.recommendations.push('require_additional_authentication');
+    }
+
+    return analysis;
+  }
+
+  async detectAdvancedThreats(request) {
+    const threats = [];
+
+    // SQL Injection detection
+    if (this.detectSQLInjection(request)) {
+      threats.push({
+        type: 'sql_injection',
+        severity: 'high',
+        payload: this.extractPayload(request),
+        recommendation: 'block_request'
+      });
+    }
+
+    // XSS detection
+    if (this.detectXSS(request)) {
+      threats.push({
+        type: 'xss',
+        severity: 'medium',
+        payload: this.extractPayload(request),
+        recommendation: 'sanitize_input'
+      });
+    }
+
+    // Rate limiting bypass attempts
+    if (this.detectRateLimitBypass(request)) {
+      threats.push({
+        type: 'rate_limit_bypass',
+        severity: 'medium',
+        technique: this.identifyBypassTechnique(request),
+        recommendation: 'enhance_rate_limiting'
+      });
+    }
+
+    // Data exfiltration attempts
+    if (this.detectDataExfiltration(request)) {
+      threats.push({
+        type: 'data_exfiltration',
+        severity: 'critical',
+        indicators: this.getExfiltrationIndicators(request),
+        recommendation: 'immediate_block'
+      });
+    }
+
+    return threats;
+  }
+
+  detectSQLInjection(request) {
+    const sqlPatterns = [
+      /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b)/i,
+      /(\b(UNION|OR|AND)\b.*\b(SELECT|INSERT|UPDATE|DELETE)\b)/i,
+      /(\b(EXEC|EXECUTE|SP_)\b)/i,
+      /(\b(SCRIPT|JAVASCRIPT|VBSCRIPT)\b)/i
+    ];
+
+    const requestString = JSON.stringify(request).toLowerCase();
+    return sqlPatterns.some(pattern => pattern.test(requestString));
+  }
+
+  detectXSS(request) {
+    const xssPatterns = [
+      /<script[^>]*>.*?<\/script>/gi,
+      /javascript:/gi,
+      /on\w+\s*=/gi,
+      /<iframe[^>]*>.*?<\/iframe>/gi,
+      /<object[^>]*>.*?<\/object>/gi
+    ];
+
+    const requestString = JSON.stringify(request);
+    return xssPatterns.some(pattern => pattern.test(requestString));
+  }
+
+  detectRateLimitBypass(request) {
+    const bypassIndicators = [
+      // IP rotation
+      this.detectIPRotation(request),
+      // User agent spoofing
+      this.detectUserAgentSpoofing(request),
+      // Request timing manipulation
+      this.detectTimingManipulation(request),
+      // Header manipulation
+      this.detectHeaderManipulation(request)
+    ];
+
+    return bypassIndicators.some(indicator => indicator);
+  }
+
+  detectDataExfiltration(request) {
+    const exfiltrationIndicators = [
+      // Unusual data access patterns
+      this.analyzeDataAccessPattern(request),
+      // Large data requests
+      this.analyzeDataVolume(request),
+      // Unusual time patterns
+      this.analyzeAccessTiming(request),
+      // Geographic anomalies
+      this.analyzeGeographicPattern(request)
+    ];
+
+    return exfiltrationIndicators.some(indicator => indicator);
+  }
+}
+```
+
+## Data Privacy & Compliance
+
+### GDPR Implementation
+
+Comprehensive GDPR compliance implementation:
+
+```javascript
+// gdpr-compliance.js
+class GDPRComplianceManager {
+  constructor(database, auditLogger) {
+    this.db = database;
+    this.audit = auditLogger;
+    this.dataProcessor = new DataProcessor();
+    this.consentManager = new ConsentManager();
+  }
+
+  async handleDataSubjectRequest(request) {
+    const { type, subjectId, requestId, requesterId } = request;
+    
+    // Log the request
+    await this.audit.log({
+      event: 'data_subject_request',
+      type,
+      subjectId,
+      requestId,
+      requesterId,
+      timestamp: new Date()
+    });
+
+    switch (type) {
+      case 'access':
+        return await this.provideDataAccess(subjectId, requestId);
+      case 'portability':
+        return await this.provideDataPortability(subjectId, requestId);
+      case 'rectification':
+        return await this.handleDataRectification(subjectId, request);
+      case 'erasure':
+        return await this.handleDataErasure(subjectId, requestId);
+      case 'restriction':
+        return await this.handleProcessingRestriction(subjectId, requestId);
+      case 'objection':
+        return await this.handleProcessingObjection(subjectId, requestId);
+      default:
+        throw new Error(`Unknown request type: ${type}`);
+    }
+  }
+
+  async provideDataAccess(subjectId, requestId) {
+    // Collect all personal data
+    const personalData = await this.collectPersonalData(subjectId);
+    
+    // Get processing purposes
+    const processingPurposes = await this.getProcessingPurposes(subjectId);
+    
+    // Get data retention information
+    const retentionInfo = await this.getDataRetentionInfo(subjectId);
+    
+    // Get third-party sharing information
+    const thirdPartySharing = await this.getThirdPartySharing(subjectId);
+    
+    // Generate response
+    const response = {
+      personalData: this.sanitizePersonalData(personalData),
+      processingPurposes,
+      retentionInfo,
+      thirdPartySharing,
+      dataCategories: this.categorizeData(personalData),
+      legalBasis: await this.getLegalBasis(subjectId)
+    };
+
+    // Log data access
+    await this.audit.log({
+      event: 'data_access_provided',
+      subjectId,
+      requestId,
+      dataTypes: Object.keys(personalData),
+      timestamp: new Date()
+    });
+
+    return response;
+  }
+
+  async handleDataErasure(subjectId, requestId) {
+    // Check if erasure is legally permissible
+    const erasureCheck = await this.verifyErasurePermissibility(subjectId);
+    
+    if (!erasureCheck.allowed) {
+      return {
+        status: 'denied',
+        reason: erasureCheck.reason,
+        legalBasis: erasureCheck.legalBasis,
+        alternatives: erasureCheck.alternatives
+      };
+    }
+
+    // Perform data erasure
+    const erasureResult = await this.performDataErasure(subjectId);
+    
+    // Log erasure
+    await this.audit.log({
+      event: 'data_erasure_performed',
+      subjectId,
+      requestId,
+      recordsErased: erasureResult.recordsErased,
+      dataTypes: erasureResult.dataTypes,
+      timestamp: new Date()
+    });
+
+    return {
+      status: 'completed',
+      recordsErased: erasureResult.recordsErased,
+      confirmationId: this.generateConfirmationId(),
+      erasureDate: new Date().toISOString()
+    };
+  }
+
+  async collectPersonalData(subjectId) {
+    const [profile, posts, interactions, analytics, logs] = await Promise.all([
+      this.db.creators.findOne({ id: subjectId }),
+      this.db.posts.find({ creator_id: subjectId }),
+      this.db.interactions.find({ creator_id: subjectId }),
+      this.db.analytics.find({ creator_id: subjectId }),
+      this.db.audit_logs.find({ subject_id: subjectId })
+    ]);
+
+    return {
+      profile: this.sanitizeProfileData(profile),
+      posts: this.sanitizePostsData(posts),
+      interactions: this.sanitizeInteractionsData(interactions),
+      analytics: this.sanitizeAnalyticsData(analytics),
+      logs: this.sanitizeLogsData(logs)
+    };
+  }
+
+  async verifyErasurePermissibility(subjectId) {
+    // Check for legal obligations to retain data
+    const legalObligations = await this.checkLegalObligations(subjectId);
+    
+    if (legalObligations.length > 0) {
+      return {
+        allowed: false,
+        reason: 'legal_obligation',
+        legalBasis: legalObligations,
+        alternatives: ['data_anonymization', 'processing_restriction']
+      };
+    }
+
+    // Check for legitimate interests
+    const legitimateInterests = await this.checkLegitimateInterests(subjectId);
+    
+    if (legitimateInterests.length > 0) {
+      return {
+        allowed: false,
+        reason: 'legitimate_interest',
+        legalBasis: legitimateInterests,
+        alternatives: ['data_anonymization', 'processing_restriction']
+      };
+    }
+
+    return { allowed: true };
+  }
+}
+```
+
+### SOC 2 Compliance Framework
+
+Implement comprehensive SOC 2 compliance:
+
+```javascript
+// soc2-compliance.js
+class SOC2ComplianceManager {
+  constructor() {
+    this.controls = this.initializeControls();
+    this.auditTrail = [];
+    this.evidenceCollector = new EvidenceCollector();
+  }
+
+  initializeControls() {
+    return {
+      // CC6.1 - Logical and Physical Access Security
+      'CC6.1': {
+        title: 'Logical and Physical Access Security',
+        description: 'The entity implements logical and physical access security measures to protect against threats from sources outside its system boundaries.',
+        requirements: [
+          'Multi-factor authentication for all system access',
+          'Role-based access control implementation',
+          'Regular access reviews and certifications',
+          'Physical security controls for data centers',
+          'Network segmentation and isolation'
+        ],
+        evidence: []
+      },
+
+      // CC6.2 - System Access Controls
+      'CC6.2': {
+        title: 'System Access Controls',
+        description: 'Prior to issuing system credentials and granting system access, the entity registers and authorizes new internal and external users whose access is administered by the entity.',
+        requirements: [
+          'User registration and authorization process',
+          'Access provisioning and deprovisioning',
+          'Password policy enforcement',
+          'Account lockout mechanisms',
+          'Session management controls'
+        ],
+        evidence: []
+      },
+
+      // CC6.3 - Data Transmission and Disposal
+      'CC6.3': {
+        title: 'Data Transmission and Disposal',
+        description: 'The entity authorizes, designs, develops or acquires, implements, operates, approves, and maintains system changes.',
+        requirements: [
+          'Encryption in transit (TLS 1.3)',
+          'Encryption at rest (AES-256)',
+          'Secure data disposal procedures',
+          'Data retention policies',
+          'Secure transmission protocols'
+        ],
+        evidence: []
+      },
+
+      // CC6.4 - System Monitoring
+      'CC6.4': {
+        title: 'System Monitoring',
+        description: 'The entity monitors the system and takes action to maintain compliance with its objectives.',
+        requirements: [
+          'Comprehensive logging and monitoring',
+          'Real-time threat detection',
+          'Incident response procedures',
+          'Security event correlation',
+          'Automated alerting systems'
+        ],
+        evidence: []
+      },
+
+      // CC6.5 - System Operations
+      'CC6.5': {
+        title: 'System Operations',
+        description: 'The entity implements controls to prevent or detect unauthorized changes to information assets.',
+        requirements: [
+          'Change management procedures',
+          'Backup and recovery processes',
+          'Capacity planning and monitoring',
+          'Incident management procedures',
+          'System maintenance and updates'
+        ],
+        evidence: []
+      }
+    };
+  }
+
+  async auditControl(controlId, evidence) {
+    const control = this.controls[controlId];
+    if (!control) {
+      throw new Error(`Unknown control: ${controlId}`);
+    }
+
+    const auditRecord = {
+      controlId,
+      timestamp: new Date(),
+      evidence,
+      status: 'pending',
+      auditor: 'system',
+      findings: []
+    };
+
+    // Validate control implementation
+    const validation = await this.validateControl(controlId, evidence);
+    
+    if (validation.passed) {
+      auditRecord.status = 'compliant';
+      auditRecord.score = validation.score;
+    } else {
+      auditRecord.status = 'non-compliant';
+      auditRecord.findings = validation.findings;
+      auditRecord.recommendations = validation.recommendations;
+    }
+
+    // Store evidence
+    await this.evidenceCollector.storeEvidence(controlId, evidence, auditRecord);
+
+    // Update control evidence
+    control.evidence.push(auditRecord);
+    this.auditTrail.push(auditRecord);
+
+    return auditRecord;
+  }
+
+  async validateControl(controlId, evidence) {
+    const control = this.controls[controlId];
+    const findings = [];
+    const recommendations = [];
+    let score = 0;
+
+    // Validate each requirement
+    for (const requirement of control.requirements) {
+      const requirementValidation = await this.validateRequirement(requirement, evidence);
+      
+      if (requirementValidation.valid) {
+        score += 1;
+      } else {
+        findings.push({
+          requirement,
+          issue: requirementValidation.issue,
+          severity: requirementValidation.severity
+        });
+        
+        recommendations.push({
+          requirement,
+          recommendation: requirementValidation.recommendation
+        });
+      }
+    }
+
+    const totalRequirements = control.requirements.length;
+    const complianceScore = score / totalRequirements;
+
+    return {
+      passed: complianceScore >= 0.8,
+      score: complianceScore,
+      findings,
+      recommendations
+    };
+  }
+
+  generateComplianceReport() {
+    const report = {
+      period: this.getReportingPeriod(),
+      controls: this.controls,
+      auditTrail: this.auditTrail,
+      complianceStatus: this.calculateOverallCompliance(),
+      recommendations: this.generateOverallRecommendations(),
+      evidence: this.evidenceCollector.getAllEvidence()
+    };
+
+    return report;
+  }
+
+  calculateOverallCompliance() {
+    const controlScores = Object.values(this.controls).map(control => {
+      const recentAudits = control.evidence.filter(
+        audit => audit.timestamp > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      );
+      
+      if (recentAudits.length === 0) return 0;
+      
+      const compliantAudits = recentAudits.filter(audit => audit.status === 'compliant');
+      return compliantAudits.length / recentAudits.length;
+    });
+
+    const overallScore = controlScores.reduce((sum, score) => sum + score, 0) / controlScores.length;
+    
+    return {
+      overallScore,
+      status: overallScore >= 0.8 ? 'compliant' : 'non-compliant',
+      controlScores: Object.keys(this.controls).reduce((scores, controlId, index) => {
+        scores[controlId] = controlScores[index];
+        return scores;
+      }, {})
+    };
+  }
+}
+```
+
+## Advanced Security Controls
+
+### API Security Hardening
+
+Implement comprehensive API security measures:
+
+```javascript
+// api-security.js
+class APISecurityHardening {
+  constructor(config) {
+    this.rateLimiter = new AdvancedRateLimiter(config.rateLimit);
+    this.inputValidator = new InputValidator(config.validation);
+    this.outputSanitizer = new OutputSanitizer(config.sanitization);
+    this.securityHeaders = new SecurityHeaders(config.headers);
+  }
+
+  async secureRequest(request, response) {
+    // 1. Input validation and sanitization
+    const validatedRequest = await this.inputValidator.validate(request);
+    if (!validatedRequest.valid) {
+      return this.createSecurityError('invalid_input', validatedRequest.errors);
+    }
+
+    // 2. Rate limiting with advanced algorithms
+    const rateLimitResult = await this.rateLimiter.check(request);
+    if (!rateLimitResult.allowed) {
+      return this.createRateLimitError(rateLimitResult);
+    }
+
+    // 3. Security headers
+    this.securityHeaders.setHeaders(response);
+
+    // 4. Request processing with security context
+    const securityContext = this.createSecurityContext(request);
+    const processedRequest = await this.processWithSecurityContext(validatedRequest, securityContext);
+
+    return processedRequest;
+  }
+
+  createSecurityContext(request) {
+    return {
+      user: request.user,
+      ip: this.getClientIP(request),
+      userAgent: request.headers['user-agent'],
+      timestamp: new Date(),
+      sessionId: request.sessionId,
+      riskScore: this.calculateRiskScore(request),
+      permissions: this.getUserPermissions(request.user),
+      restrictions: this.getUserRestrictions(request.user)
+    };
+  }
+
+  calculateRiskScore(request) {
+    let riskScore = 0;
+
+    // Geographic risk
+    const geoRisk = this.calculateGeographicRisk(request);
+    riskScore += geoRisk;
+
+    // Behavioral risk
+    const behaviorRisk = this.calculateBehavioralRisk(request);
+    riskScore += behaviorRisk;
+
+    // Request pattern risk
+    const patternRisk = this.calculatePatternRisk(request);
+    riskScore += patternRisk;
+
+    // Time-based risk
+    const timeRisk = this.calculateTimeRisk(request);
+    riskScore += timeRisk;
+
+    return Math.min(riskScore, 1.0);
+  }
+
+  calculateGeographicRisk(request) {
+    const clientIP = this.getClientIP(request);
+    const geoData = this.getGeoData(clientIP);
+    
+    let risk = 0;
+
+    // High-risk countries
+    if (this.isHighRiskCountry(geoData.country)) {
+      risk += 0.3;
+    }
+
+    // VPN/Proxy detection
+    if (this.isVPNOrProxy(geoData)) {
+      risk += 0.2;
+    }
+
+    // Unusual location
+    if (this.isUnusualLocation(request.user, geoData)) {
+      risk += 0.2;
+    }
+
+    return risk;
+  }
+
+  calculateBehavioralRisk(request) {
+    const userBehavior = this.getUserBehavior(request.user);
+    let risk = 0;
+
+    // Unusual request patterns
+    if (this.hasUnusualPattern(request, userBehavior)) {
+      risk += 0.3;
+    }
+
+    // Rapid requests
+    if (this.hasRapidRequests(request, userBehavior)) {
+      risk += 0.2;
+    }
+
+    // Unusual data access
+    if (this.hasUnusualDataAccess(request, userBehavior)) {
+      risk += 0.3;
+    }
+
+    return risk;
+  }
+
+  async processWithSecurityContext(request, securityContext) {
+    // Apply security policies based on risk score
+    if (securityContext.riskScore > 0.7) {
+      return await this.processHighRiskRequest(request, securityContext);
+    } else if (securityContext.riskScore > 0.4) {
+      return await this.processMediumRiskRequest(request, securityContext);
+    } else {
+      return await this.processLowRiskRequest(request, securityContext);
+    }
+  }
+
+  async processHighRiskRequest(request, securityContext) {
+    // Additional authentication required
+    if (!securityContext.mfaVerified) {
+      return this.createMFARequiredError();
+    }
+
+    // Enhanced logging
+    await this.logSecurityEvent('high_risk_request', {
+      request,
+      securityContext,
+      timestamp: new Date()
+    });
+
+    // Process with additional security checks
+    return await this.processWithEnhancedSecurity(request, securityContext);
+  }
+}
+```
+
+### Encryption & Key Management
+
+Implement enterprise-grade encryption:
+
+```javascript
+// encryption-management.js
+class EncryptionManager {
+  constructor(config) {
+    this.hsm = new HSMClient(config.hsm);
+    this.keyVault = new KeyVault(config.keyVault);
+    this.encryption = new EncryptionEngine(config.encryption);
+  }
+
+  async encryptData(data, keyId, options = {}) {
+    const key = await this.getEncryptionKey(keyId);
+    const encryptionOptions = {
+      algorithm: 'AES-256-GCM',
+      key: key.material,
+      iv: options.iv || this.generateIV(),
+      aad: options.aad || this.generateAAD(data)
+    };
+
+    const encrypted = await this.encryption.encrypt(data, encryptionOptions);
+    
+    return {
+      encryptedData: encrypted.ciphertext,
+      iv: encryptionOptions.iv,
+      aad: encryptionOptions.aad,
+      keyId: key.id,
+      algorithm: encryptionOptions.algorithm,
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  async decryptData(encryptedData, keyId, options = {}) {
+    const key = await this.getEncryptionKey(keyId);
+    
+    const decryptionOptions = {
+      algorithm: encryptedData.algorithm,
+      key: key.material,
+      iv: encryptedData.iv,
+      aad: encryptedData.aad
+    };
+
+    return await this.encryption.decrypt(encryptedData.encryptedData, decryptionOptions);
+  }
+
+  async rotateKey(keyId) {
+    const oldKey = await this.getEncryptionKey(keyId);
+    const newKey = await this.generateNewKey(oldKey.metadata);
+    
+    // Re-encrypt all data with new key
+    await this.reencryptAllData(oldKey.id, newKey.id);
+    
+    // Update key status
+    await this.updateKeyStatus(oldKey.id, 'deprecated');
+    await this.updateKeyStatus(newKey.id, 'active');
+    
+    // Schedule old key deletion
+    await this.scheduleKeyDeletion(oldKey.id, 90); // 90 days
+    
+    return newKey;
+  }
+
+  async generateNewKey(metadata) {
+    const keyMaterial = await this.hsm.generateKey({
+      algorithm: 'AES-256',
+      usage: ['encrypt', 'decrypt'],
+      metadata
+    });
+
+    const key = {
+      id: this.generateKeyId(),
+      material: keyMaterial,
+      algorithm: 'AES-256',
+      status: 'active',
+      created: new Date(),
+      metadata
+    };
+
+    await this.keyVault.storeKey(key);
+    return key;
+  }
+
+  async reencryptAllData(oldKeyId, newKeyId) {
+    const oldKey = await this.getEncryptionKey(oldKeyId);
+    const newKey = await this.getEncryptionKey(newKeyId);
+    
+    // Get all encrypted data using old key
+    const encryptedData = await this.getEncryptedDataByKey(oldKeyId);
+    
+    for (const data of encryptedData) {
+      // Decrypt with old key
+      const decrypted = await this.decryptData(data, oldKeyId);
+      
+      // Encrypt with new key
+      const reencrypted = await this.encryptData(decrypted, newKeyId);
+      
+      // Update database
+      await this.updateEncryptedData(data.id, reencrypted);
+    }
+  }
+}
+```
+
+## Incident Response & Forensics
+
+### Automated Incident Response
+
+Implement sophisticated incident response:
+
+```javascript
+// incident-response.js
+class IncidentResponseSystem {
+  constructor(config) {
+    this.alertManager = new AlertManager(config.alerts);
+    this.forensics = new ForensicsCollector(config.forensics);
+    this.remediation = new RemediationEngine(config.remediation);
+    this.notification = new NotificationSystem(config.notifications);
+  }
+
+  async handleSecurityIncident(incident) {
+    const incidentId = this.generateIncidentId();
+    
+    // 1. Classify incident
+    const classification = await this.classifyIncident(incident);
+    
+    // 2. Collect forensic evidence
+    const evidence = await this.collectForensicEvidence(incident);
+    
+    // 3. Determine response actions
+    const responseActions = await this.determineResponseActions(incident, classification);
+    
+    // 4. Execute response
+    const responseResult = await this.executeResponse(incidentId, responseActions);
+    
+    // 5. Notify stakeholders
+    await this.notifyStakeholders(incidentId, incident, responseResult);
+    
+    // 6. Document incident
+    await this.documentIncident(incidentId, incident, evidence, responseResult);
+    
+    return {
+      incidentId,
+      classification,
+      responseActions,
+      status: responseResult.status
+    };
+  }
+
+  async classifyIncident(incident) {
+    const classifiers = [
+      this.classifyBySeverity(incident),
+      this.classifyByType(incident),
+      this.classifyByImpact(incident),
+      this.classifyByUrgency(incident)
+    ];
+
+    const classification = await Promise.all(classifiers);
+    
+    return {
+      severity: classification[0],
+      type: classification[1],
+      impact: classification[2],
+      urgency: classification[3],
+      overall: this.calculateOverallClassification(classification)
+    };
+  }
+
+  async collectForensicEvidence(incident) {
+    const evidence = {
+      logs: await this.collectLogs(incident),
+      network: await this.collectNetworkData(incident),
+      system: await this.collectSystemData(incident),
+      user: await this.collectUserData(incident),
+      application: await this.collectApplicationData(incident)
+    };
+
+    // Preserve evidence integrity
+    await this.preserveEvidenceIntegrity(evidence);
+    
+    return evidence;
+  }
+
+  async determineResponseActions(incident, classification) {
+    const actions = [];
+
+    // Immediate containment
+    if (classification.severity === 'critical') {
+      actions.push({
+        type: 'immediate_containment',
+        priority: 1,
+        actions: ['isolate_affected_systems', 'block_suspicious_ips', 'disable_compromised_accounts']
+      });
+    }
+
+    // Investigation actions
+    actions.push({
+      type: 'investigation',
+      priority: 2,
+      actions: ['collect_forensic_evidence', 'analyze_attack_vector', 'identify_affected_systems']
+    });
+
+    // Remediation actions
+    if (classification.type === 'data_breach') {
+      actions.push({
+        type: 'remediation',
+        priority: 3,
+        actions: ['patch_vulnerabilities', 'update_security_controls', 'enhance_monitoring']
+      });
+    }
+
+    // Communication actions
+    actions.push({
+      type: 'communication',
+      priority: 4,
+      actions: ['notify_internal_team', 'prepare_external_communication', 'update_stakeholders']
+    });
+
+    return actions;
+  }
+
+  async executeResponse(incidentId, actions) {
+    const results = [];
+
+    for (const action of actions) {
+      try {
+        const result = await this.executeAction(incidentId, action);
+        results.push({ action, result, status: 'success' });
+      } catch (error) {
+        results.push({ action, error, status: 'failed' });
+      }
+    }
+
+    return {
+      incidentId,
+      actions: results,
+      status: results.every(r => r.status === 'success') ? 'completed' : 'partial'
+    };
+  }
+}
+```
+
+## Best Practices for Security
+
+<CardGroup cols={2}>
+<Card title="Defense in Depth" icon="shield">
+  Implement multiple layers of security controls to protect against various attack vectors.
+</Card>
+
+<Card title="Zero Trust" icon="lock">
+  Never trust, always verify. Implement zero-trust architecture with continuous verification.
+</Card>
+
+<Card title="Continuous Monitoring" icon="eye">
+  Monitor security events in real-time with automated detection and response.
+</Card>
+
+<Card title="Regular Audits" icon="clipboard-check">
+  Conduct regular security audits and penetration testing to identify vulnerabilities.
+</Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Performance Guide" icon="zap" href="/guides/performance">
+  Advanced performance optimization
+</Card>
+
+<Card title="Enterprise Guide" icon="building" href="/guides/enterprise">
+  Enterprise deployment and scaling
+</Card>
+</CardGroup>

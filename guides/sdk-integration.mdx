@@ -1,0 +1,242 @@
+---
+title: 'SDK Integration'
+description: 'How to integrate Influship API with popular programming languages and frameworks'
+---
+
+# SDK Integration
+
+Learn how to integrate the Influship API with your favorite programming languages and frameworks.
+
+## JavaScript/Node.js
+
+### Installation
+
+```bash
+npm install @influship/api-client
+```
+
+### Basic Usage
+
+```javascript
+import { InflushipClient } from '@influship/api-client';
+
+const client = new InflushipClient({
+  apiKey: process.env.INFLUSHIP_API_KEY,
+  baseURL: 'https://api.influship.com'
+});
+
+// Search for creators
+const results = await client.search({
+  query: 'fitness influencers',
+  filters: {
+    min_followers: 10000
+  }
+});
+
+console.log(results.items);
+```
+
+### Advanced Features
+
+```javascript
+// Batch creator lookup
+const creators = await client.getCreators({
+  creator_ids: ['123e4567-e89b-12d3-a456-426614174000'],
+  include_profiles: true,
+  profile_mode: 'detailed'
+});
+
+// Lookalike discovery
+const lookalikes = await client.findLookalikes({
+  seeds: [
+    { id: '123e4567-e89b-12d3-a456-426614174000', weight: 1.0 }
+  ],
+  filters: {
+    audience_size: { min: 50000, max: 300000 }
+  }
+});
+```
+
+## Python
+
+### Installation
+
+```bash
+pip install influship-api
+```
+
+### Basic Usage
+
+```python
+from influship import InflushipClient
+
+client = InflushipClient(api_key='your_api_key')
+
+# Search for creators
+results = client.search(
+    query='fitness influencers',
+    filters={'min_followers': 10000}
+)
+
+print(results.items)
+```
+
+### Advanced Features
+
+```python
+# Batch creator lookup
+creators = client.get_creators(
+    creator_ids=['123e4567-e89b-12d3-a456-426614174000'],
+    include_profiles=True,
+    profile_mode='detailed'
+)
+
+# Lookalike discovery
+lookalikes = client.find_lookalikes(
+    seeds=[{'id': '123e4567-e89b-12d3-a456-426614174000', 'weight': 1.0}],
+    filters={'audience_size': {'min': 50000, 'max': 300000}}
+)
+```
+
+## PHP
+
+### Installation
+
+```bash
+composer require influship/api-client
+```
+
+### Basic Usage
+
+```php
+<?php
+use Influship\ApiClient;
+
+$client = new ApiClient('your_api_key');
+
+// Search for creators
+$results = $client->search([
+    'query' => 'fitness influencers',
+    'filters' => ['min_followers' => 10000]
+]);
+
+print_r($results->items);
+```
+
+## Error Handling
+
+All SDKs provide consistent error handling:
+
+```javascript
+try {
+  const results = await client.search({ query: 'fitness' });
+} catch (error) {
+  if (error.code === 'rate_limit_exceeded') {
+    // Handle rate limiting
+    console.log('Rate limit exceeded. Retry after:', error.retryAfter);
+  } else if (error.code === 'invalid_request') {
+    // Handle validation errors
+    console.log('Invalid request:', error.message);
+  }
+}
+```
+
+## Rate Limiting
+
+SDKs automatically handle rate limiting:
+
+```javascript
+const client = new InflushipClient({
+  apiKey: 'your_key',
+  rateLimit: {
+    maxRequests: 1000,
+    perMinute: 60,
+    retryAfter: 1000 // milliseconds
+  }
+});
+```
+
+## Webhooks
+
+Set up webhooks for real-time updates:
+
+```javascript
+client.webhooks.subscribe('creator.updated', (event) => {
+  console.log('Creator updated:', event.data);
+});
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+<Card title="Error Handling" icon="exclamation-triangle">
+  Always implement proper error handling for network issues and API errors.
+</Card>
+
+<Card title="Rate Limiting" icon="clock">
+  Respect rate limits and implement exponential backoff for retries.
+</Card>
+
+<Card title="Caching" icon="database">
+  Cache results when appropriate to reduce API calls and improve performance.
+</Card>
+
+<Card title="Security" icon="shield">
+  Never expose API keys in client-side code. Use environment variables.
+</Card>
+</CardGroup>
+
+## Framework Integrations
+
+### React
+
+```jsx
+import { useInfluship } from '@influship/react-hooks';
+
+function CreatorSearch() {
+  const { search, loading, error } = useInfluship();
+  
+  const handleSearch = async (query) => {
+    const results = await search({ query });
+    return results;
+  };
+  
+  return (
+    <div>
+      {/* Your search UI */}
+    </div>
+  );
+}
+```
+
+### Next.js
+
+```javascript
+// pages/api/search-creators.js
+import { InflushipClient } from '@influship/api-client';
+
+export default async function handler(req, res) {
+  const client = new InflushipClient({
+    apiKey: process.env.INFLUSHIP_API_KEY
+  });
+  
+  try {
+    const results = await client.search(req.body);
+    res.json(results);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="API Reference" icon="book" href="/api-reference">
+  Complete endpoint documentation
+</Card>
+
+<Card title="Code Examples" icon="code" href="/examples">
+  Working examples in multiple languages
+</Card>
+</CardGroup>

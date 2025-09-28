@@ -9,22 +9,21 @@ Get started with the Influship API in just a few minutes. This guide will help y
 
 ## Prerequisites
 
-- An API key from the [Influship Dashboard](https://dashboard.influship.com)
+- An API key from [elliot@influship.com](mailto:elliot@influship.com)
 - A tool to make HTTP requests (curl, Postman, or your preferred client)
 
 ## Step 1: Get Your API Key
 
 <Steps>
-<Step title="Sign up">
-  Visit the [Influship Dashboard](https://dashboard.influship.com) and create your account.
+<Step title="Request Access">
+  Email [elliot@influship.com](mailto:elliot@influship.com) to get your API key.
 </Step>
 
-<Step title='Generate API key'>
-  Navigate to **API Keys** and click **Generate New Key**.
-</Step>
-
-<Step title="Copy your key">
-  Your API key will be displayed only once. Copy it and store it securely.
+<Step title="Store Securely">
+  Copy your API key and store it as an environment variable:
+  ```bash
+  export INFLUSHIP_API_KEY="your_api_key_here"
+  ```
 </Step>
 </Steps>
 
@@ -42,14 +41,19 @@ curl -X GET 'https://api.influship.com/health' \
 <ResponseExample>
 ```json Success Response
 {
-  "ok": true
+  "ok": true,
+  "timestamp": "2024-01-15T10:30:00.000Z"
 }
 ```
 </ResponseExample>
 
-## Step 3: Search for Creators
+<Check>
+Great! Your API key is working. Now let's find some influencers.
+</Check>
 
-Search for influencers using natural language:
+## Step 3: Find Your First Influencers
+
+Search for influencers using natural language - this is where the magic happens:
 
 <RequestExample>
 ```bash cURL
@@ -58,11 +62,7 @@ curl -X POST 'https://api.influship.com/v1/search' \
   -H 'Content-Type: application/json' \
   -d '{
     "query": "fitness influencers with high engagement",
-    "filters": {
-      "min_followers": 10000,
-      "platform": ["instagram"]
-    },
-    "limit": 5
+    "limit": 3
   }'
 ```
 </RequestExample>
@@ -72,27 +72,36 @@ curl -X POST 'https://api.influship.com/v1/search' \
 {
   "items": [
     {
-      "id": "00000000-0000-0000-0000-000000000000",
+      "id": "123e4567-e89b-12d3-a456-426614174000",
       "name": "Sarah Johnson",
-      "username": "sarahfitness",
-      "platform": "instagram",
-      "follower_count": 125000,
-      "engagement_rate": 0.045,
-      "verified": true,
-      "ai_score": 0.92,
-      "ai_explanation": "High engagement rate and consistent fitness content"
+      "profiles": [
+        {
+          "platform": "Instagram",
+          "username": "sarahfitness",
+          "follower_count": 125000,
+          "engagement_rate": 4.5,
+          "verified": true
+        }
+      ],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High engagement rate and consistent fitness content"
+      }
     }
   ],
   "filtered_total": 45,
-  "has_more": true,
-  "next_cursor": "eyJvZmZzZXQiOjEwfQ=="
+  "has_more": true
 }
 ```
 </ResponseExample>
 
-## Step 4: Get Creator Details (batch via array)
+<Check>
+🎉 **Success!** You just found fitness influencers using AI-powered search. Notice how the AI explains why each creator is a good match.
+</Check>
 
-Request multiple creators by ID (array; can be one item):
+## Step 4: Get Detailed Creator Information
+
+Now let's get more details about the creators you found:
 
 <RequestExample>
 ```bash cURL
@@ -100,65 +109,71 @@ curl -X POST 'https://api.influship.com/v1/creators' \
   -H 'X-API-Key: YOUR_API_KEY' \
   -H 'Content-Type: application/json' \
   -d '{
-    "creator_ids": ["00000000-0000-0000-0000-000000000000"],
-    "mode": "detailed",
-    "result_scope": "all_platforms",
-    "include": ["emails"]
+    "creator_ids": ["123e4567-e89b-12d3-a456-426614174000"],
+    "include_profiles": true,
+    "profile_mode": "detailed"
   }'
 ```
 </RequestExample>
 
-## What's Working Now
+## What You Just Accomplished
 
 <CardGroup cols={2}>
-<Card title="✅ Health Check" icon="check">
-  Basic API health monitoring
+<Card title="✅ AI Search" icon="search">
+  Found relevant influencers using natural language
 </Card>
 
-<Card title='✅ Creator Search' icon='search'>
-  AI-powered influencer discovery
+<Card title="✅ Detailed Profiles" icon="user">
+  Retrieved comprehensive creator data
 </Card>
 
-<Card title='✅ Creator Details' icon='user'>
-  Detailed creator profiles
+<Card title="✅ AI Insights" icon="brain">
+  Got AI-powered recommendations and explanations
 </Card>
 
-<Card title="⚠️ Content Analysis" icon="clock">
-  Coming soon - post analysis
+<Card title="✅ Real Data" icon="chart-bar">
+  Accessed real engagement rates and follower counts
 </Card>
 </CardGroup>
 
-## Rate Limits
-
-- **Free tier**: 1,000 requests per hour
-- **Pro tier**: 10,000 requests per hour
-
-Rate limit info is in response headers: `X-RateLimit-Remaining`, `X-RateLimit-Reset`
-
-## Error Handling
-
-<ResponseExample>
-```json Error Response
-{
-  "error": {
-    "code": "invalid_request",
-    "message": "The request is missing required parameters",
-    "details": {
-      "missing_fields": ["query"]
-    }
-  }
-}
-```
-</ResponseExample>
-
 ## Next Steps
 
+Now that you've made your first API calls, here's what you can explore:
+
 <CardGroup cols={2}>
-<Card title="API Reference" icon="book" href="/api-reference">
-  Complete endpoint documentation
+<Card title="Find Similar Creators" icon="users" href="/api-reference/lookalike">
+  Use lookalike discovery to find creators similar to your favorites
+</Card>
+
+<Card title="Analyze Content" icon="chart-line" href="/api-reference/analyze-posts">
+  Analyze individual posts for engagement and content insights
+</Card>
+
+<Card title="Check Brand Safety" icon="shield" href="/api-reference/brand-safety">
+  Ensure creators are brand-safe for your campaigns
+</Card>
+
+<Card title="View All Endpoints" icon="book" href="/api-reference">
+  Explore the complete API reference
+</Card>
+</CardGroup>
+
+## Common Use Cases
+
+<CardGroup cols={2}>
+<Card title="Campaign Discovery" icon="rocket" href="/guides/campaign-discovery">
+  Complete workflow for finding influencers for marketing campaigns
 </Card>
 
 <Card title="Code Examples" icon="code" href="/examples">
-  Working examples in multiple languages
+  Working examples in JavaScript, Python, and cURL
+</Card>
+
+<Card title="Pricing" icon="dollar-sign" href="/essentials/pricing">
+  Understand credits and billing
+</Card>
+
+<Card title="Rate Limits" icon="clock" href="/essentials/rate-limits">
+  Learn about rate limits and best practices
 </Card>
 </CardGroup>

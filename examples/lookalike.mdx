@@ -29,13 +29,11 @@ const response = await fetch('https://api.influship.com/v1/lookalike', {
   method: 'POST',
   headers: {
     'X-API-Key': 'YOUR_API_KEY',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    seeds: [
-      { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
-    ]
-  })
+    seeds: [{ platform: 'instagram', username: 'sarahfitness', weight: 1.0 }],
+  }),
 });
 
 const data = await response.json();
@@ -87,15 +85,15 @@ const response = await fetch('https://api.influship.com/v1/lookalike', {
   method: 'POST',
   headers: {
     'X-API-Key': 'YOUR_API_KEY',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     seeds: [
       { id: '00000000-0000-0000-0000-000000000000', weight: 1.0 },
       { platform: 'instagram', username: 'fitnessguru', weight: 0.8 },
-      { platform: 'instagram', username: 'wellnesscoach', weight: 0.6 }
-    ]
-  })
+      { platform: 'instagram', username: 'wellnesscoach', weight: 0.6 },
+    ],
+  }),
 });
 
 const data = await response.json();
@@ -119,7 +117,7 @@ curl -X POST https://api.influship.com/v1/lookalike \
       "audience_size": { "min": 50000, "max": 500000 },
       "engagement_rate": { "min": 0.03 },
       "verified": true,
-      "country": ["US", "CA"],
+      "location": ["US", "CA"],
       "interests": ["fitness", "wellness"]
     },
     "mode": "detailed"
@@ -133,27 +131,27 @@ const response = await fetch('https://api.influship.com/v1/lookalike', {
   method: 'POST',
   headers: {
     'X-API-Key': 'YOUR_API_KEY',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    seeds: [
-      { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
-    ],
+    seeds: [{ platform: 'instagram', username: 'sarahfitness', weight: 1.0 }],
     filters: {
       platform: ['instagram'],
       audience_size: { min: 50000, max: 500000 },
       engagement_rate: { min: 0.03 },
       verified: true,
-      country: ['US', 'CA'],
-      interests: ['fitness', 'wellness']
+      location: ['US', 'CA'],
+      interests: ['fitness', 'wellness'],
     },
-    mode: 'detailed'
-  })
+    mode: 'detailed',
+  }),
 });
 
 const data = await response.json();
-data.items.forEach(creator => {
-  console.log(`${creator.name} (@${creator.username}) - ${creator.similarity} similarity`);
+data.items.forEach((creator) => {
+  console.log(
+    `${creator.name} (@${creator.username}) - ${creator.similarity} similarity`
+  );
 });
 ```
 
@@ -176,7 +174,7 @@ data = {
         'audience_size': {'min': 50000, 'max': 500000},
         'engagement_rate': {'min': 0.03},
         'verified': True,
-        'country': ['US', 'CA'],
+        'location': ['US', 'CA'],
         'interests': ['fitness', 'wellness']
     },
     'mode': 'detailed'
@@ -217,13 +215,11 @@ async function getLookalikeCreators(cursor = null) {
     method: 'POST',
     headers: {
       'X-API-Key': 'YOUR_API_KEY',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      seeds: [
-        { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
-      ]
-    })
+      seeds: [{ platform: 'instagram', username: 'sarahfitness', weight: 1.0 }],
+    }),
   });
 
   const data = await response.json();
@@ -251,7 +247,7 @@ def get_lookalike_creators(cursor=None):
     params = {'limit': 25}
     if cursor:
         params['cursor'] = cursor
-    
+
     headers = {
         'X-API-Key': 'YOUR_API_KEY',
         'Content-Type': 'application/json'
@@ -261,7 +257,7 @@ def get_lookalike_creators(cursor=None):
             {'platform': 'instagram', 'username': 'sarahfitness', 'weight': 1.0}
         ]
     }
-    
+
     response = requests.post(url, headers=headers, json=data, params=params)
     return response.json()
 
@@ -286,9 +282,9 @@ async function findLookalikeCreators(seeds) {
       method: 'POST',
       headers: {
         'X-API-Key': 'YOUR_API_KEY',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ seeds })
+      body: JSON.stringify({ seeds }),
     });
 
     if (!response.ok) {
@@ -307,7 +303,7 @@ async function findLookalikeCreators(seeds) {
 // Usage with error handling
 try {
   const result = await findLookalikeCreators([
-    { platform: 'instagram', username: 'sarahfitness', weight: 1.0 }
+    { platform: 'instagram', username: 'sarahfitness', weight: 1.0 },
   ]);
   console.log('Found creators:', result.items);
 } catch (error) {
@@ -329,10 +325,10 @@ def find_lookalike_creators(seeds):
             'Content-Type': 'application/json'
         }
         data = {'seeds': seeds}
-        
+
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        
+
         return response.json()
     except requests.exceptions.HTTPError as e:
         error_data = e.response.json()
@@ -360,7 +356,7 @@ except Exception as e:
 const topPerformers = [
   { id: 'creator-1', weight: 1.0 },
   { id: 'creator-2', weight: 0.8 },
-  { id: 'creator-3', weight: 0.6 }
+  { id: 'creator-3', weight: 0.6 },
 ];
 
 const lookalikes = await findLookalikeCreators(topPerformers);
@@ -386,9 +382,106 @@ print('Fitness niche creators:', fitness_lookalikes['items'])
 // Find creators similar to competitors' top performers
 const competitorSeeds = [
   { platform: 'instagram', username: 'competitor1', weight: 1.0 },
-  { platform: 'instagram', username: 'competitor2', weight: 0.8 }
+  { platform: 'instagram', username: 'competitor2', weight: 0.8 },
 ];
 
 const competitorLookalikes = await findLookalikeCreators(competitorSeeds);
 console.log('Competitor analysis results:', competitorLookalikes.items);
+```
+
+## Platform-Specific Profile Filtering
+
+### Only Instagram and TikTok Profiles
+
+```javascript
+const response = await fetch('https://api.influship.com/v1/lookalike', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    seeds: [{ platform: 'instagram', username: 'sarahfitness', weight: 1.0 }],
+    profile_platforms: ['instagram', 'tiktok'], // Only show these platforms
+    profile_mode: 'detailed', // Get full profile data
+  }),
+});
+```
+
+### Cross-Platform Discovery
+
+```javascript
+// Find creators from any platform, not just Instagram
+const response = await fetch('https://api.influship.com/v1/lookalike', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    seeds: [{ platform: 'instagram', username: 'sarahfitness', weight: 1.0 }],
+    result_scope: 'all_platforms', // Find creators from any platform
+    profile_platforms: ['instagram', 'tiktok', 'youtube'], // Show all their profiles
+  }),
+});
+```
+
+## Response Detail Examples
+
+### Lite Mode Response
+
+```json
+{
+  "items": [
+    {
+      "id": "creator-123",
+      "name": "Emma Wilson",
+      "avatar_url": "https://img/emma.jpg",
+      "bio": "Wellness coach",
+      "profiles": [
+        {
+          "platform": "instagram",
+          "username": "emmawellness",
+          "follower_count": 125000
+        }
+      ],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High similarity to seed creator"
+      }
+    }
+  ]
+}
+```
+
+### Detailed Mode Response
+
+```json
+{
+  "items": [
+    {
+      "id": "creator-123",
+      "name": "Emma Wilson",
+      "avatar_url": "https://img/emma.jpg",
+      "bio": "Wellness coach",
+      "profiles": [
+        {
+          "platform": "instagram",
+          "username": "emmawellness",
+          "follower_count": 125000,
+          "engagement_rate": 0.045,
+          "verified": true,
+          "avg_likes": 5000,
+          "posts_per_week": 3,
+          "avatar_url": "https://img/emma_ig.jpg",
+          "external_url": "https://emmawellness.com"
+        }
+      ],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High similarity to seed creator with strong engagement"
+      }
+    }
+  ]
+}
 ```

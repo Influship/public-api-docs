@@ -1,0 +1,185 @@
+---
+title: 'Campaign Discovery Workflow'
+description: 'Complete workflow for discovering influencers for marketing campaigns'
+---
+
+# Campaign Discovery Workflow
+
+A step-by-step guide to finding the perfect influencers for your marketing campaigns using the Influship API.
+
+## Overview
+
+This guide walks you through the complete process of discovering influencers, from initial search to final campaign planning.
+
+## Step 1: Define Your Campaign Requirements
+
+Before searching, clearly define your campaign parameters:
+
+- **Target audience**: Demographics, interests, location
+- **Campaign goals**: Brand awareness, conversions, engagement
+- **Budget constraints**: Follower count ranges, engagement thresholds
+- **Content requirements**: Platform preferences, content types
+
+## Step 2: Initial Creator Search
+
+Start with a broad search using natural language:
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://api.influship.com/v1/search' \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "fitness influencers who focus on sustainable living and have engaged audiences",
+    "filters": {
+      "platform_filters": [
+        {
+          "platform": "instagram",
+          "min_followers": 10000,
+          "max_followers": 500000,
+          "min_engagement_rate": 3.0
+        }
+      ]
+    },
+    "limit": 25
+  }'
+```
+</RequestExample>
+
+## Step 3: Analyze Search Results
+
+Review the AI recommendations and scores:
+
+<ResponseExample>
+```json Search Results
+{
+  "items": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Sarah Johnson",
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High engagement rate (4.5%) and consistent sustainable fitness content"
+      },
+      "profiles": [
+        {
+          "platform": "Instagram",
+          "username": "sarahfitness",
+          "follower_count": 125000,
+          "engagement_rate": 4.5,
+          "verified": true
+        }
+      ]
+    }
+  ],
+  "filtered_total": 45,
+  "has_more": true
+}
+```
+</ResponseExample>
+
+## Step 4: Get Detailed Creator Information
+
+For promising candidates, get comprehensive profiles:
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://api.influship.com/v1/creators' \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "creator_ids": [
+      "123e4567-e89b-12d3-a456-426614174000",
+      "987fcdeb-51a2-43d1-9f12-345678901234"
+    ],
+    "include_profiles": true,
+    "profile_mode": "detailed"
+  }'
+```
+</RequestExample>
+
+## Step 5: Find Lookalike Creators
+
+Use your best candidates as seeds to find similar influencers:
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://api.influship.com/v1/lookalike' \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "seeds": [
+      {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "weight": 1.0
+      }
+    ],
+    "filters": {
+      "audience_size": {
+        "min": 50000,
+        "max": 300000
+      }
+    },
+    "limit": 20
+  }'
+```
+</RequestExample>
+
+## Step 6: Brand Safety Analysis
+
+Before finalizing your campaign, analyze creators for brand safety:
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://api.influship.com/v1/brand-safety/creators' \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "creator_ids": [
+      "123e4567-e89b-12d3-a456-426614174000"
+    ]
+  }'
+```
+</RequestExample>
+
+## Best Practices
+
+<CardGroup cols={2}>
+<Card title="Search Strategy" icon="search">
+  Start broad, then narrow down with filters. Use natural language for better AI matching.
+</Card>
+
+<Card title="Engagement Quality" icon="chart-line">
+  Focus on engagement rate over follower count. Look for consistent, authentic engagement.
+</Card>
+
+<Card title="Brand Alignment" icon="shield-check">
+  Always run brand safety analysis before finalizing partnerships.
+</Card>
+
+<Card title="Diversification" icon="users">
+  Mix macro and micro influencers for better campaign reach and authenticity.
+</Card>
+</CardGroup>
+
+## Common Pitfalls
+
+<Warning>
+Don't rely solely on follower count. High follower counts don't guarantee engagement or campaign success.
+</Warning>
+
+<Note>
+Always verify creator authenticity and engagement quality before reaching out for partnerships.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="API Reference" icon="book" href="/api-reference">
+  Complete endpoint documentation
+</Card>
+
+<Card title="Code Examples" icon="code" href="/examples">
+  Working examples in multiple languages
+</Card>
+</CardGroup>

@@ -11,18 +11,18 @@ Find creators similar to your seed profiles using AI-powered vector similarity s
 
 The lookalike discovery feature uses advanced AI to find creators with similar characteristics to your seed profiles. It analyzes content style, audience demographics, engagement patterns, and behavioral data to identify the most relevant matches.
 
-<Check>
-✅ Fully working
-</Check>
+<Check>✅ Fully working</Check>
 
 ## Supported Platforms
 
 Currently supported platforms for seed resolution:
+
 - **Instagram** ✅ (Fully supported)
 
 Future platforms (configured but not yet enabled):
+
 - TikTok (coming soon)
-- YouTube (coming soon)  
+- YouTube (coming soon)
 - Twitter (coming soon)
 
 ## Seed Types
@@ -86,31 +86,55 @@ Apply detailed filters to refine your lookalike results:
       "max": 0.1
     },
     "verified": true,
-    "country": ["US", "CA"],
-    "interests": ["fitness", "wellness"],
-    "content_types": ["photos", "videos"]
+      "location": ["US", "CA"],
+    "interests": ["fitness", "wellness"]
   }
 }
 ```
 
 ### Filter Options
 
-| Filter | Type | Description | Example |
-|--------|------|-------------|---------|
-| `platform` | Array | Platforms to include | `["instagram"]` |
-| `audience_size` | Object | Follower count range | `{"min": 10000, "max": 1000000}` |
-| `engagement_rate` | Object | Engagement rate range | `{"min": 0.02, "max": 0.1}` |
-| `verified` | Boolean | Verification status | `true` |
-| `country` | Array | Country codes (ISO 3166-1) | `["US", "CA"]` |
-| `interests` | Array | Content topics/interests | `["fitness", "wellness"]` |
-| `content_types` | Array | Content types | `["photos", "videos", "stories"]` |
+| Filter            | Type    | Description                 | Example                          |
+| ----------------- | ------- | --------------------------- | -------------------------------- |
+| `platform`        | Array   | Platforms to include        | `["instagram"]`                  |
+| `audience_size`   | Object  | Follower count range        | `{"min": 10000, "max": 1000000}` |
+| `engagement_rate` | Object  | Engagement rate range       | `{"min": 0.02, "max": 0.1}`      |
+| `verified`        | Boolean | Verification status         | `true`                           |
+| `location`        | Array   | Location codes (ISO 3166-1) | `["US", "CA"]`                   |
+| `interests`       | Array   | Basic bio text matching     | `["fitness", "wellness"]`        |
+
+## Parameter Differences
+
+### `result_scope` vs `profile_platforms`
+
+**`result_scope`** controls **which creators** are returned:
+
+- `seed_platform`: Only return creators who have profiles on the same platform as your seed creators
+- `all_platforms`: Return creators from any platform, regardless of seed platform
+
+**`profile_platforms`** controls **which social profiles** are included for each creator:
+
+- If not specified: All profiles for each creator are returned
+- If specified: Only profiles from the specified platforms are included
+
+### Response Detail Levels
+
+**`mode`** controls creator-level data detail:
+
+- `lite`: Basic creator info (name, bio, avatar)
+- `detailed`: Full creator data with AI recommendations
+
+**`profile_mode`** controls profile-level data detail:
+
+- `lite`: Basic profile info (platform, username, follower_count)
+- `detailed`: Full profile data (engagement_rate, verified, avg_likes, etc.)
 
 ## Weight System
 
 Seed weights allow you to emphasize certain creators:
 
 - **Weight 1.0**: Standard importance
-- **Weight 0.5**: Half importance  
+- **Weight 0.5**: Half importance
 - **Weight 2.0**: Double importance
 - **Range**: 0.1 to 10.0
 
@@ -160,7 +184,6 @@ curl -X POST https://api.influship.com/v1/lookalike \
       "verified": true,
       "follower_count": 125000,
       "bio": "Wellness coach and fitness enthusiast",
-      "country": "US",
       "profiles": [
         {
           "platform": "instagram",
@@ -168,6 +191,13 @@ curl -X POST https://api.influship.com/v1/lookalike \
           "follower_count": 125000,
           "engagement_rate": 0.045,
           "verified": true
+        },
+        {
+          "platform": "tiktok",
+          "username": "emmawellness",
+          "follower_count": 50000,
+          "engagement_rate": 0.08,
+          "verified": false
         }
       ],
       "ai_recommendation": {
@@ -179,6 +209,110 @@ curl -X POST https://api.influship.com/v1/lookalike \
   "filtered_total": 45,
   "has_more": true,
   "next_cursor": "eyJvZmZzZXQiOjI1fQ=="
+}
+```
+
+## Response Detail Examples
+
+### Lite Mode Response (`mode: "lite"`, `profile_mode: "lite"`)
+
+```json
+{
+  "items": [
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "name": "Emma Wilson",
+      "avatar_url": "https://img/emma.jpg",
+      "bio": "Wellness coach and fitness enthusiast",
+      "profiles": [
+        {
+          "platform": "instagram",
+          "username": "emmawellness",
+          "follower_count": 125000
+        },
+        {
+          "platform": "tiktok",
+          "username": "emmawellness",
+          "follower_count": 50000
+        }
+      ],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High similarity to seed creator with strong engagement and fitness focus"
+      }
+    }
+  ]
+}
+```
+
+### Detailed Mode Response (`mode: "detailed"`, `profile_mode: "detailed"`)
+
+```json
+{
+  "items": [
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "name": "Emma Wilson",
+      "avatar_url": "https://img/emma.jpg",
+      "bio": "Wellness coach and fitness enthusiast",
+      "profiles": [
+        {
+          "platform": "instagram",
+          "username": "emmawellness",
+          "follower_count": 125000,
+          "engagement_rate": 0.045,
+          "verified": true,
+          "avg_likes": 5000,
+          "posts_per_week": 3,
+          "avatar_url": "https://img/emma_ig.jpg",
+          "external_url": "https://emmawellness.com"
+        },
+        {
+          "platform": "tiktok",
+          "username": "emmawellness",
+          "follower_count": 50000,
+          "engagement_rate": 0.08,
+          "verified": false,
+          "avg_likes": 2000,
+          "posts_per_week": 5,
+          "avatar_url": "https://img/emma_tiktok.jpg"
+        }
+      ],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High similarity to seed creator with strong engagement and fitness focus"
+      }
+    }
+  ]
+}
+```
+
+### Platform Filtering Example (`profile_platforms: ["instagram"]`)
+
+```json
+{
+  "items": [
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "name": "Emma Wilson",
+      "avatar_url": "https://img/emma.jpg",
+      "bio": "Wellness coach and fitness enthusiast",
+      "profiles": [
+        {
+          "platform": "instagram",
+          "username": "emmawellness",
+          "follower_count": 125000,
+          "engagement_rate": 0.045,
+          "verified": true
+        }
+        // TikTok profile excluded due to profile_platforms filter
+      ],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "High similarity to seed creator with strong engagement and fitness focus"
+      }
+    }
+  ]
 }
 ```
 
@@ -199,6 +333,7 @@ curl -H "X-API-Key: YOUR_KEY" \
 ## Error Handling
 
 ### Creator Not Found (404)
+
 ```json
 {
   "error": {
@@ -210,10 +345,11 @@ curl -H "X-API-Key: YOUR_KEY" \
 ```
 
 ### Invalid Seed (400)
+
 ```json
 {
   "error": {
-    "code": "invalid_seed", 
+    "code": "invalid_seed",
     "message": "Username must be between 1 and 30 characters",
     "request_id": "req_123"
   }
@@ -221,6 +357,7 @@ curl -H "X-API-Key: YOUR_KEY" \
 ```
 
 ### Unsupported Platform (400)
+
 ```json
 {
   "error": {
@@ -243,16 +380,19 @@ curl -H "X-API-Key: YOUR_KEY" \
 ## Best Practices
 
 ### Seed Selection
+
 - Choose 2-5 diverse seed creators for best results
 - Use creators with clear, consistent content themes
 - Include both high and medium engagement creators
 
 ### Filtering Strategy
+
 - Start with broad filters, then narrow down
 - Use audience size ranges to match your campaign goals
 - Filter by engagement rate to ensure quality
 
 ### Performance Tips
+
 - Use `mode: "lite"` for faster responses when detailed data isn't needed
 - Set appropriate `limit` values (25-50 is optimal)
 - Cache results when possible to reduce API calls
@@ -260,15 +400,19 @@ curl -H "X-API-Key: YOUR_KEY" \
 ## Use Cases
 
 ### Campaign Expansion
+
 Find creators similar to your best-performing influencers to expand your reach.
 
 ### Competitor Analysis
+
 Discover creators with similar audiences to your competitors' top performers.
 
 ### Niche Discovery
+
 Identify creators in specific niches by using niche-specific seed creators.
 
 ### Audience Matching
+
 Find creators with audiences similar to your target demographic.
 
 ## Next Steps
@@ -278,11 +422,11 @@ Find creators with audiences similar to your target demographic.
   Complete endpoint documentation
 </Card>
 
-<Card title="Examples" icon="code" href="/examples">
+<Card title='Examples' icon='code' href='/examples'>
   Code samples and tutorials
 </Card>
 
-<Card title="Authentication" icon="key" href="/guides/authentication">
+<Card title='Authentication' icon='key' href='/guides/authentication'>
   API key setup
 </Card>
 

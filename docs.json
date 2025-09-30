@@ -61,7 +61,7 @@
           },
           {
             "group": "Endpoints",
-            "openapi": "https://api.influship.com/openapi.json"
+            "openapi": "https://api.influship.com/openapi.yaml"
           }
         ]
       },

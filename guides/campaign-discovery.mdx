@@ -1,28 +1,51 @@
 ---
 title: 'Campaign Discovery Workflow'
-description: 'Complete workflow for discovering influencers for marketing campaigns'
+description: 'End-to-end guide for discovering and vetting influencers for marketing campaigns'
 ---
 
 # Campaign Discovery Workflow
 
-A step-by-step guide to finding the perfect influencers for your marketing campaigns using the Influship API.
+A comprehensive, step-by-step workflow for finding the perfect influencers for your marketing campaigns using the Influship API.
 
 ## Overview
 
-This guide walks you through the complete process of discovering influencers, from initial search to final campaign planning.
+This guide walks you through the complete process: from defining campaign requirements to final creator selection, with code examples and best practices.
 
-## Step 1: Define Your Campaign Requirements
+## Step 1: Define Campaign Requirements
 
-Before searching, clearly define your campaign parameters:
+Before making any API calls, clearly define your campaign parameters:
 
-- **Target audience**: Demographics, interests, location
-- **Campaign goals**: Brand awareness, conversions, engagement
-- **Budget constraints**: Follower count ranges, engagement thresholds
-- **Content requirements**: Platform preferences, content types
+<AccordionGroup>
+<Accordion title="Target Audience">
+  - **Demographics**: Age, gender, location
+  - **Interests**: Specific topics, niches, categories
+  - **Platforms**: Instagram, TikTok, YouTube, etc.
+</Accordion>
+
+<Accordion title="Campaign Goals">
+  - **Brand awareness**: Reach and impressions
+  - **Conversions**: Sales, sign-ups, downloads
+  - **Engagement**: Comments, shares, saves
+  - **Authenticity**: Genuine connections with audience
+</Accordion>
+
+<Accordion title="Budget & Scope">
+  - **Creator tier**: Micro (10k-100k), Mid (100k-500k), Macro (500k+)
+  - **Number of creators**: Campaign size
+  - **Engagement thresholds**: Minimum engagement rate
+  - **Content requirements**: Photos, videos, stories, reels
+</Accordion>
+
+<Accordion title="Brand Alignment">
+  - **Brand values**: Sustainability, inclusivity, etc.
+  - **Content style**: Professional, casual, humorous
+  - **Past partnerships**: Similar brands, competitors
+</Accordion>
+</AccordionGroup>
 
 ## Step 2: Initial Creator Search
 
-Start with a broad search using natural language:
+Use AI-powered search with natural language to find relevant creators:
 
 <RequestExample>
 ```bash cURL
@@ -30,7 +53,7 @@ curl -X POST 'https://api.influship.com/v1/search' \
   -H 'X-API-Key: YOUR_API_KEY' \
   -H 'Content-Type: application/json' \
   -d '{
-    "query": "fitness influencers who focus on sustainable living and have engaged audiences",
+    "query": "sustainable fashion influencers with engaged audiences who create authentic content",
     "filters": {
       "platform_filters": [
         {
@@ -41,66 +64,130 @@ curl -X POST 'https://api.influship.com/v1/search' \
         }
       ]
     },
+    "mode": "detailed",
     "limit": 25
   }'
 ```
+
+```javascript JavaScript
+const response = await fetch('https://api.influship.com/v1/search', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': process.env.INFLUSHIP_API_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    query: 'sustainable fashion influencers with engaged audiences who create authentic content',
+    filters: {
+      platform_filters: [{
+        platform: 'instagram',
+        min_followers: 10000,
+        max_followers: 500000,
+        min_engagement_rate: 3.0
+      }]
+    },
+    mode: 'detailed',
+    limit: 25
+  })
+});
+
+const searchResults = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.influship.com/v1/search',
+    headers={'X-API-Key': os.environ['INFLUSHIP_API_KEY']},
+    json={
+        'query': 'sustainable fashion influencers with engaged audiences who create authentic content',
+        'filters': {
+            'platform_filters': [{
+                'platform': 'instagram',
+                'min_followers': 10000,
+                'max_followers': 500000,
+                'min_engagement_rate': 3.0
+            }]
+        },
+        'mode': 'detailed',
+        'limit': 25
+    }
+)
+
+search_results = response.json()
+```
 </RequestExample>
-
-## Step 3: Analyze Search Results
-
-Review the AI recommendations and scores:
 
 <ResponseExample>
 ```json Search Results
 {
   "items": [
     {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "name": "Sarah Johnson",
-      "ai_recommendation": {
-        "score": 0.92,
-        "explanation": "High engagement rate (4.5%) and consistent sustainable fitness content"
-      },
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Emma Green",
+      "avatar_url": "https://example.com/avatar.jpg",
+      "bio": "Sustainable fashion advocate | Eco-conscious living",
       "profiles": [
         {
-          "platform": "Instagram",
-          "username": "sarahfitness",
+          "id": "prof_abc123",
+          "platform": "instagram",
+          "username": "emmagreen_style",
           "follower_count": 125000,
           "engagement_rate": 4.5,
-          "verified": true
+          "verified": true,
+          "avg_likes": 5625,
+          "avg_comments": 312,
+          "posts_per_week": 3.5
         }
-      ]
+      ],
+      "ai_recommendation": {
+        "score": 0.94,
+        "explanation": "Strong sustainability focus with highly engaged audience. Consistent eco-fashion content and authentic partnerships."
+      }
     }
   ],
-  "filtered_total": 45,
-  "has_more": true
+  "filtered_total": 247,
+  "has_more": true,
+  "next_cursor": "eyJpZCI6MjV9"
 }
 ```
 </ResponseExample>
 
-## Step 4: Get Detailed Creator Information
+**Key metrics to review:**
+- `ai_recommendation.score` - AI relevance score (0-1)
+- `ai_recommendation.explanation` - Why this creator matches
+- `engagement_rate` - Audience engagement quality
+- `follower_count` - Reach potential
 
-For promising candidates, get comprehensive profiles:
+## Step 3: Analyze Top Candidates
 
-<RequestExample>
-```bash cURL
-curl -X POST 'https://api.influship.com/v1/creators' \
-  -H 'X-API-Key: YOUR_API_KEY' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "creator_ids": [
-      "123e4567-e89b-12d3-a456-426614174000",
-      "987fcdeb-51a2-43d1-9f12-345678901234"
-    ],
-    "include_profiles": true,
-    "profile_mode": "detailed"
-  }'
+Review AI recommendations and filter by relevance score:
+
+```javascript
+// Sort by AI recommendation score
+const topCreators = searchResults.items
+  .sort((a, b) => b.ai_recommendation.score - a.ai_recommendation.score)
+  .slice(0, 10);
+
+// Filter by minimum AI score threshold
+const qualifiedCreators = searchResults.items.filter(
+  creator => creator.ai_recommendation.score >= 0.85
+);
+
+console.log(`Top candidates: ${topCreators.length}`);
+console.log(`Qualified creators: ${qualifiedCreators.length}`);
 ```
-</RequestExample>
 
-## Step 5: Find Lookalike Creators
+**What to look for:**
+- High AI recommendation scores (>0.85)
+- Strong engagement rates (>3%)
+- Authentic audience growth
+- Relevant content themes
 
-Use your best candidates as seeds to find similar influencers:
+## Step 4: Expand with Lookalike Discovery
+
+Use your best candidates as seeds to find similar creators:
 
 <RequestExample>
 ```bash cURL
@@ -110,24 +197,62 @@ curl -X POST 'https://api.influship.com/v1/lookalike' \
   -d '{
     "seeds": [
       {
-        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "id": "550e8400-e29b-41d4-a716-446655440000",
         "weight": 1.0
+      },
+      {
+        "id": "987fcdeb-51a2-43d1-9f12-345678901234",
+        "weight": 0.8
       }
     ],
     "filters": {
+      "platform": ["instagram"],
       "audience_size": {
         "min": 50000,
         "max": 300000
+      },
+      "engagement_rate": {
+        "min": 0.03
       }
     },
-    "limit": 20
+    "mode": "detailed",
+    "limit": 30
   }'
+```
+
+```javascript JavaScript
+const lookalikes = await fetch('https://api.influship.com/v1/lookalike', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': process.env.INFLUSHIP_API_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    seeds: [
+      { id: topCreators[0].id, weight: 1.0 },
+      { id: topCreators[1].id, weight: 0.8 }
+    ],
+    filters: {
+      platform: ['instagram'],
+      audience_size: { min: 50000, max: 300000 },
+      engagement_rate: { min: 0.03 }
+    },
+    mode: 'detailed',
+    limit: 30
+  })
+}).then(r => r.json());
 ```
 </RequestExample>
 
-## Step 6: Brand Safety Analysis
+**Seed selection tips:**
+- Use 2-5 seed creators for best results
+- Weight your best performers higher (1.0)
+- Use lower weights (0.5-0.8) for experimental seeds
+- Mix different creator types for diversity
 
-Before finalizing your campaign, analyze creators for brand safety:
+## Step 5: Brand Safety Analysis
+
+Before finalizing, analyze creators for brand safety:
 
 <RequestExample>
 ```bash cURL
@@ -136,41 +261,342 @@ curl -X POST 'https://api.influship.com/v1/brand-safety/creators' \
   -H 'Content-Type: application/json' \
   -d '{
     "creator_ids": [
-      "123e4567-e89b-12d3-a456-426614174000"
+      "550e8400-e29b-41d4-a716-446655440000",
+      "987fcdeb-51a2-43d1-9f12-345678901234"
     ]
   }'
 ```
+
+```javascript JavaScript
+const safetyAnalysis = await fetch('https://api.influship.com/v1/brand-safety/creators', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': process.env.INFLUSHIP_API_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    creator_ids: [...topCreators, ...lookalikes.items].map(c => c.id)
+  })
+}).then(r => r.json());
+
+// Filter out high-risk creators
+const safeCreators = safetyAnalysis.results.filter(
+  result => result.risk_level === 'low' || result.risk_level === 'medium'
+);
+```
 </RequestExample>
 
-## Best Practices
+<ResponseExample>
+```json Brand Safety Results
+{
+  "results": [
+    {
+      "creator_id": "550e8400-e29b-41d4-a716-446655440000",
+      "risk_level": "low",
+      "risk_score": 0.15,
+      "flags": [],
+      "analysis": {
+        "content_appropriateness": "safe",
+        "past_controversies": "none_found",
+        "language_analysis": "professional"
+      }
+    }
+  ]
+}
+```
+</ResponseExample>
+
+**Risk levels:**
+- **Low** (0-0.3): Safe for partnership
+- **Medium** (0.3-0.6): Review manually
+- **High** (0.6-1.0): Avoid or investigate further
+
+## Step 6: Deep Content Analysis
+
+Analyze recent posts to understand content style:
+
+```javascript
+// Get recent posts for each creator
+async function analyzeCreatorContent(creatorId) {
+  const posts = await fetch(
+    `https://api.influship.com/v1/posts/by-creator?creator_id=${creatorId}&limit=20`,
+    {
+      headers: { 'X-API-Key': process.env.INFLUSHIP_API_KEY }
+    }
+  ).then(r => r.json());
+
+  // Calculate content metrics
+  const avgEngagement = posts.items.reduce((sum, post) => 
+    sum + post.engagement_rate, 0) / posts.items.length;
+  
+  const contentTypes = posts.items.reduce((types, post) => {
+    types[post.type] = (types[post.type] || 0) + 1;
+    return types;
+  }, {});
+
+  return {
+    creator_id: creatorId,
+    avg_engagement: avgEngagement,
+    content_types: contentTypes,
+    post_count: posts.items.length
+  };
+}
+
+// Analyze all finalists
+const contentAnalysis = await Promise.all(
+  safeCreators.map(c => analyzeCreatorContent(c.creator_id))
+);
+```
+
+## Step 7: Score and Rank Creators
+
+Use the match endpoint to score creators against your campaign:
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://api.influship.com/v1/match' \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "creators": [
+      {"id": "550e8400-e29b-41d4-a716-446655440000"},
+      {"id": "987fcdeb-51a2-43d1-9f12-345678901234"}
+    ],
+    "search_intent": {
+      "query": "sustainable fashion campaign targeting eco-conscious millennials",
+      "context": "Brand launch for sustainable clothing line focusing on ethical manufacturing"
+    }
+  }'
+```
+
+```javascript JavaScript
+const matchResults = await fetch('https://api.influship.com/v1/match', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': process.env.INFLUSHIP_API_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    creators: safeCreators.map(c => ({ id: c.creator_id })),
+    search_intent: {
+      query: 'sustainable fashion campaign targeting eco-conscious millennials',
+      context: 'Brand launch for sustainable clothing line focusing on ethical manufacturing'
+    }
+  })
+}).then(r => r.json());
+
+// Sort by match score
+const rankedCreators = matchResults.results
+  .sort((a, b) => b.match_score - a.match_score);
+```
+</RequestExample>
+
+## Step 8: Final Selection
+
+Combine all data points for final decision:
+
+```javascript
+function scoreCreator(creator, safetyResult, matchResult, contentAnalysis) {
+  return {
+    id: creator.id,
+    name: creator.name,
+    platform: creator.profiles[0].platform,
+    username: creator.profiles[0].username,
+    
+    // Metrics
+    followers: creator.profiles[0].follower_count,
+    engagement_rate: creator.profiles[0].engagement_rate,
+    
+    // Scores
+    ai_relevance: creator.ai_recommendation.score,
+    match_score: matchResult.match_score,
+    brand_safety: 1 - safetyResult.risk_score,
+    
+    // Content
+    posts_per_week: creator.profiles[0].posts_per_week,
+    avg_engagement: contentAnalysis.avg_engagement,
+    
+    // Composite score (weighted)
+    overall_score: (
+      creator.ai_recommendation.score * 0.3 +
+      matchResult.match_score * 0.3 +
+      (1 - safetyResult.risk_score) * 0.2 +
+      (creator.profiles[0].engagement_rate / 100) * 0.2
+    )
+  };
+}
+
+// Generate final rankings
+const finalRankings = rankedCreators.map(matchResult => {
+  const creator = topCreators.find(c => c.id === matchResult.creator_id);
+  const safety = safetyAnalysis.results.find(s => s.creator_id === matchResult.creator_id);
+  const content = contentAnalysis.find(c => c.creator_id === matchResult.creator_id);
+  
+  return scoreCreator(creator, safety, matchResult, content);
+}).sort((a, b) => b.overall_score - a.overall_score);
+
+console.log('Top 10 Creators for Campaign:', finalRankings.slice(0, 10));
+```
+
+## Complete Example: End-to-End Workflow
+
+```javascript
+async function discoverCreatorsForCampaign(campaignQuery, filters) {
+  const API_KEY = process.env.INFLUSHIP_API_KEY;
+  
+  // Step 1: Search for creators
+  console.log('🔍 Searching for creators...');
+  const search = await fetch('https://api.influship.com/v1/search', {
+    method: 'POST',
+    headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: campaignQuery, filters, limit: 25 })
+  }).then(r => r.json());
+  
+  console.log(`✅ Found ${search.items.length} creators`);
+  
+  // Step 2: Find lookalikes using top 3 creators
+  console.log('👥 Finding similar creators...');
+  const topSeeds = search.items
+    .sort((a, b) => b.ai_recommendation.score - a.ai_recommendation.score)
+    .slice(0, 3);
+  
+  const lookalikes = await fetch('https://api.influship.com/v1/lookalike', {
+    method: 'POST',
+    headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      seeds: topSeeds.map(c => ({ id: c.id, weight: 1.0 })),
+      limit: 30
+    })
+  }).then(r => r.json());
+  
+  console.log(`✅ Found ${lookalikes.items.length} similar creators`);
+  
+  // Step 3: Combine and deduplicate
+  const allCreators = [...search.items, ...lookalikes.items];
+  const uniqueCreators = [...new Map(
+    allCreators.map(c => [c.id, c])
+  ).values()];
+  
+  // Step 4: Brand safety check
+  console.log('🛡️ Analyzing brand safety...');
+  const safety = await fetch('https://api.influship.com/v1/brand-safety/creators', {
+    method: 'POST',
+    headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ creator_ids: uniqueCreators.map(c => c.id) })
+  }).then(r => r.json());
+  
+  const safeCreators = safety.results.filter(r => r.risk_level !== 'high');
+  console.log(`✅ ${safeCreators.length} creators passed safety check`);
+  
+  // Step 5: Match and score
+  console.log('🎯 Scoring creators for campaign...');
+  const matches = await fetch('https://api.influship.com/v1/match', {
+    method: 'POST',
+    headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      creators: safeCreators.map(s => ({ id: s.creator_id })),
+      search_intent: { query: campaignQuery }
+    })
+  }).then(r => r.json());
+  
+  // Step 6: Final rankings
+  const rankings = matches.results
+    .map(match => {
+      const creator = uniqueCreators.find(c => c.id === match.creator_id);
+      const safetyScore = safety.results.find(s => s.creator_id === match.creator_id);
+      
+      return {
+        ...creator,
+        match_score: match.match_score,
+        safety_score: 1 - safetyScore.risk_score,
+        overall_score: (match.match_score + creator.ai_recommendation.score) / 2
+      };
+    })
+    .sort((a, b) => b.overall_score - a.overall_score);
+  
+  console.log(`✅ Campaign discovery complete! Top ${rankings.length} creators ranked.`);
+  
+  return rankings;
+}
+
+// Usage
+const results = await discoverCreatorsForCampaign(
+  'sustainable fashion influencers with engaged millennial audiences',
+  {
+    platform_filters: [{
+      platform: 'instagram',
+      min_followers: 10000,
+      max_followers: 500000,
+      min_engagement_rate: 3.0
+    }]
+  }
+);
+
+console.log('Top 10 Creators:', results.slice(0, 10));
+```
+
+## Cost Optimization Tips
 
 <CardGroup cols={2}>
-<Card title="Search Strategy" icon="search">
-  Start broad, then narrow down with filters. Use natural language for better AI matching.
+<Card title="Start with Lite Mode" icon="zap">
+  Use `mode: "lite"` for initial search, upgrade to detailed only for finalists
 </Card>
 
-<Card title="Engagement Quality" icon="chart-line">
-  Focus on engagement rate over follower count. Look for consistent, authentic engagement.
+<Card title="Batch Safety Checks" icon="shield">
+  Run brand safety analysis on shortlist only, not all discovered creators
 </Card>
 
-<Card title="Brand Alignment" icon="shield-check">
-  Always run brand safety analysis before finalizing partnerships.
+<Card title="Smart Pagination" icon="list">
+  Request 25-50 results initially, paginate only if needed
 </Card>
 
-<Card title="Diversification" icon="users">
-  Mix macro and micro influencers for better campaign reach and authenticity.
+<Card title="Cache Results" icon="database">
+  Cache creator data for 24-48 hours to avoid repeated API calls
 </Card>
 </CardGroup>
 
-## Common Pitfalls
+## Expected Costs
 
-<Warning>
-Don't rely solely on follower count. High follower counts don't guarantee engagement or campaign success.
-</Warning>
+**For a typical campaign discovery workflow:**
 
-<Note>
-Always verify creator authenticity and engagement quality before reaching out for partnerships.
-</Note>
+- Initial search: 25 creators × 2.0 = **50 credits**
+- Lookalike discovery: 30 creators × 1.0 = **30 credits**
+- Brand safety (20 finalists): 20 × 2.0 = **40 credits**
+- Creator matching (20 finalists): 20 × 0.1 = **2 credits**
+
+**Total: ~122 credits per campaign**
+
+## Best Practices
+
+<AccordionGroup>
+<Accordion title="Search Strategy">
+  - Start broad, then narrow with filters
+  - Use descriptive, natural language queries
+  - Include audience characteristics in search
+  - Review AI explanations for insights
+</Accordion>
+
+<Accordion title="Engagement Quality">
+  - Prioritize engagement rate over follower count
+  - Look for consistent engagement across posts
+  - Check for authentic comments vs generic responses
+  - Verify engagement matches audience size
+</Accordion>
+
+<Accordion title="Brand Alignment">
+  - Always run brand safety before outreach
+  - Review recent content manually
+  - Check for past brand partnerships
+  - Verify creator values align with campaign
+</Accordion>
+
+<Accordion title="Diversification">
+  - Mix micro (10k-100k) and mid-tier (100k-500k) creators
+  - Include different content styles
+  - Balance reach with engagement
+  - Consider multiple platforms
+</Accordion>
+</AccordionGroup>
 
 ## Next Steps
 
@@ -181,5 +607,13 @@ Always verify creator authenticity and engagement quality before reaching out fo
 
 <Card title="Code Examples" icon="code" href="/examples">
   Working examples in multiple languages
+</Card>
+
+<Card title="Lookalike Guide" icon="users" href="/guides/lookalike-discovery">
+  Deep-dive into lookalike discovery
+</Card>
+
+<Card title="Pricing" icon="dollar-sign" href="/essentials/pricing">
+  Understand costs and optimize usage
 </Card>
 </CardGroup>

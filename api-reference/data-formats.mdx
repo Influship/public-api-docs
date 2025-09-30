@@ -1,52 +1,509 @@
 ---
-title: 'Data Formats'
-description: 'Understanding data formats and field types in the Influship API'
+title: 'Data Formats & Field Types'
+description: 'Complete guide to data formats, field types, and data structures in the Influship API'
 ---
 
-# Data Formats
+# Data Formats & Field Types
 
-This page explains the data formats and field types used throughout the Influship API.
+Understanding data formats ensures you correctly parse and use API responses. This guide covers all field types, formats, and data structures used throughout the Influship API.
 
-## Common Field Types
-
-### Engagement Rate
-
-- **Type**: `number` (float)
-- **Range**: 0.0 to 1.0
-- **Example**: `0.045` (4.5% engagement rate)
-
-### Follower Count
-
-- **Type**: `integer`
-- **Example**: `125000`
-
-### Timestamps
-
-- **Type**: `string`
-- **Format**: ISO 8601
-- **Example**: `"2024-01-15T10:30:00Z"`
+## Core Data Types
 
 ### Creator ID
 
-- **Type**: `string`
-- **Format**: UUID
-- **Example**: `"00000000-0000-0000-0000-000000000000"`
+Unique identifier for a creator (person-level).
+
+<ParamField path="creator_id" type="string" format="uuid">
+  **Format**: UUID v4
+  
+  **Example**: `123e4567-e89b-12d3-a456-426614174000`
+  
+  **Usage**: Use with `/v1/creators` endpoint or as `creator_profile_id` cross-reference
+</ParamField>
+
+### Social Account ID
+
+Unique identifier for a platform-specific social account.
+
+<ParamField path="social_account_id" type="string" format="uuid">
+  **Format**: UUID v4
+  
+  **Example**: `abc12345-6789-0def-ghij-klmnopqrstuv`
+  
+  **Usage**: Returned in profile data, unique per platform account
+</ParamField>
 
 ### Platform
 
-- **Type**: `string`
-- **Values**: `"instagram"` (more platforms coming soon)
+Social media platform identifier.
 
-## Response Formats
+<ParamField path="platform" type="string" enum>
+  **Values**: `instagram` | `tiktok`
+  
+  **Example**: `"instagram"`
+  
+  <Accordion title="Platform Support">
+    - **Instagram**: ✅ Fully supported across all endpoints
+    - **TikTok**: ✅ Supported on most endpoints
+    - **YouTube, Twitter/X**: 🔜 Coming soon
+  </Accordion>
+</ParamField>
 
-### Success Response
+## Metric Fields
+
+### Follower Count
+
+Total number of followers on a platform.
+
+<ParamField path="follower_count" type="integer" nullable>
+  **Range**: `0` to `999,999,999+`
+  
+  **Example**: `125000`
+  
+  **Nullable**: `null` if account is private or data unavailable
+  
+  **Note**: Real-time follower counts may vary from cached data
+</ParamField>
+
+### Engagement Rate
+
+Percentage representing how engaged an audience is.
+
+<ParamField path="engagement_rate" type="number" nullable>
+  **Range**: `0.0` to `100.0` (percentage)
+  
+  **Example**: `4.2` (represents 4.2%)
+  
+  **Formula**: `(avg_likes + avg_comments) / follower_count * 100`
+  
+  **Calculation Period**: Based on recent posts (typically last 12 posts)
+  
+  **Nullable**: `null` if insufficient data available
+  
+  **Industry Benchmarks**:
+  - Micro-influencers (10K-100K): 3-7%
+  - Mid-tier (100K-500K): 2-5%
+  - Macro (500K+): 1-3%
+</ParamField>
+
+### Average Metrics
+
+Calculated from recent post performance.
+
+<ResponseField name="avg_likes_recent" type="number" nullable>
+  Average likes per post from recent content
+  
+  **Example**: `5240`
+  
+  **Period**: Last 12 posts
+</ResponseField>
+
+<ResponseField name="avg_comments_recent" type="number" nullable>
+  Average comments per post from recent content
+  
+  **Example**: `450`
+  
+  **Period**: Last 12 posts
+  
+  **Only in**: Detailed mode
+</ResponseField>
+
+<ResponseField name="avg_video_views_recent" type="number" nullable>
+  Average video views for video posts
+  
+  **Example**: `15000`
+  
+  **Applies to**: Video posts only
+  
+  **Only in**: Detailed mode
+</ResponseField>
+
+### Growth Metrics
+
+<ResponseField name="follower_change_rate_monthly_approx" type="number" nullable>
+  Approximate monthly follower growth rate as percentage
+  
+  **Example**: `2.5` (2.5% growth per month)
+  
+  **Interpretation**:
+  - Positive values: Growing audience
+  - Negative values: Declining audience
+  - Near zero: Stable audience
+  
+  **Only in**: Detailed mode
+</ResponseField>
+
+### Content Metrics
+
+<ResponseField name="posts_per_week_recent" type="number" nullable>
+  Average posts published per week
+  
+  **Example**: `4.5`
+  
+  **Period**: Last 30 days
+</ResponseField>
+
+<ResponseField name="media_count" type="integer" nullable>
+  Total number of posts published
+  
+  **Example**: `342`
+  
+  **Includes**: All media types (photos, videos, carousels)
+  
+  **Only in**: Detailed mode
+</ResponseField>
+
+<ResponseField name="highlight_reel_count" type="integer" nullable>
+  Number of Instagram Story highlights
+  
+  **Example**: `8`
+  
+  **Platform**: Instagram only (null for other platforms)
+  
+  **Only in**: Detailed mode
+</ResponseField>
+
+## Timestamp Fields
+
+All timestamps use **ISO 8601** format with UTC timezone.
+
+<ParamField path="timestamp" type="string" format="date-time">
+  **Format**: `YYYY-MM-DDTHH:mm:ss.sssZ`
+  
+  **Example**: `"2024-01-15T10:30:00.000Z"`
+  
+  **Timezone**: Always UTC (Z suffix)
+</ParamField>
+
+<CodeGroup>
+
+```javascript JavaScript
+const timestamp = "2024-01-15T10:30:00.000Z";
+const date = new Date(timestamp);
+console.log(date.toLocaleString()); // Local time
+```
+
+```python Python
+from datetime import datetime
+
+timestamp = "2024-01-15T10:30:00.000Z"
+dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+print(dt.strftime("%Y-%m-%d %H:%M:%S"))
+```
+
+```bash cURL / jq
+# Extract and format timestamp with jq
+curl "..." | jq -r '.posted_at | fromdate | strftime("%Y-%m-%d %H:%M")'
+```
+
+</CodeGroup>
+
+### Common Timestamp Fields
+
+<ResponseField name="posted_at" type="string">
+  When content was originally published
+</ResponseField>
+
+<ResponseField name="scraped_at" type="string">
+  When we last updated this data (metrics accurate as of this time)
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  Generic timestamp field (context-dependent)
+</ResponseField>
+
+## Text Fields
+
+### Bio & Description Fields
+
+<ResponseField name="bio" type="string" nullable maxLength={500}>
+  Creator or account biography text
+  
+  **Max Length**: ~500 characters (platform dependent)
+  
+  **Example**: `"Certified personal trainer and wellness coach"`
+  
+  **Nullable**: `null` if not provided by creator
+</ResponseField>
+
+<ResponseField name="caption" type="string" nullable maxLength={2200}>
+  Post caption text
+  
+  **Max Length**: Varies by platform
+  - Instagram: ~2,200 characters
+  - TikTok: ~2,200 characters
+  
+  **Example**: `"Morning workout complete! 💪 Ready to take on the day. #fitness"`
+</ResponseField>
+
+<ResponseField name="accessibility_caption" type="string" nullable>
+  Alt text or AI-generated image description
+  
+  **Example**: `"Person doing yoga pose on beach at sunrise"`
+  
+  **Usage**: Screen readers, content analysis
+</ResponseField>
+
+### Username & Handle Fields
+
+<ResponseField name="username" type="string">
+  Platform-specific username (without @ symbol)
+  
+  **Example**: `"sarah_fitness"`
+  
+  **Format**: Lowercase, alphanumeric, underscores, periods
+</ResponseField>
+
+<ResponseField name="display_name" type="string">
+  Platform display name (can include spaces, emoji, etc.)
+  
+  **Example**: `"Sarah | Fitness Coach 💪"`
+</ResponseField>
+
+<ResponseField name="name" type="string" nullable>
+  Creator's full name (person-level)
+  
+  **Example**: `"Sarah Johnson"`
+</ResponseField>
+
+## URL Fields
+
+All URLs are returned as **absolute, fully-qualified URLs**.
+
+<ResponseField name="avatar_url" type="string" format="uri" nullable>
+  Profile picture URL
+  
+  **Example**: `"https://cdn.influship.com/avatars/sarah.jpg"`
+  
+  **Validity**: URLs typically valid for 24-48 hours
+  
+  **Tip**: Cache images to avoid broken links
+</ResponseField>
+
+<ResponseField name="external_url" type="string" format="uri" nullable>
+  External website link from profile
+  
+  **Example**: `"https://sarahfitness.com"`
+  
+  **Nullable**: `null` if creator hasn't added a link
+</ResponseField>
+
+<ResponseField name="media_url" type="string" format="uri">
+  Primary media file URL (image or video)
+  
+  **Example**: `"https://cdn.influship.com/posts/img_123.jpg"`
+</ResponseField>
+
+<ResponseField name="thumbnail_url" type="string" format="uri" nullable>
+  Video thumbnail image URL
+  
+  **Example**: `"https://cdn.influship.com/posts/thumb_123.jpg"`
+  
+  **Condition**: Only present when `is_video: true`
+</ResponseField>
+
+## Boolean Fields
+
+<ResponseField name="verified" type="boolean">
+  Whether account has platform verification badge
+  
+  **Values**: `true` | `false`
+  
+  **Platform Differences**:
+  - Instagram: Blue checkmark (official verification)
+  - TikTok: Blue checkmark (official verification)
+  
+  **Example**: `true`
+</ResponseField>
+
+<ResponseField name="is_video" type="boolean">
+  Whether post contains video content
+  
+  **Values**: `true` | `false`
+  
+  **Example**: `false`
+</ResponseField>
+
+<ResponseField name="is_business_account" type="boolean" nullable>
+  Whether account is set to business/creator mode
+  
+  **Values**: `true` | `false` | `null`
+  
+  **Nullable**: `null` if platform doesn't expose this data
+</ResponseField>
+
+## Pagination Fields
+
+See [Pagination Guide](/api-reference/introduction#pagination) for detailed usage.
+
+<ResponseField name="cursor" type="string" nullable>
+  Opaque pagination cursor (base64-encoded)
+  
+  **Example**: `"eyJpZCI6MjUsInNjb3JlIjowLjg1fQ=="`
+  
+  **Usage**: Pass as `cursor` query parameter for next page
+  
+  **Important**: Never decode or construct manually
+</ResponseField>
+
+<ResponseField name="has_more" type="boolean">
+  Whether additional pages exist
+  
+  **Values**: `true` | `false`
+  
+  **Logic**:
+  - `true` → More results available, use `cursor` to fetch
+  - `false` → This is the last page
+</ResponseField>
+
+<ResponseField name="filtered_total" type="integer">
+  Total matching results before pagination
+  
+  **Example**: `1247`
+  
+  **Usage**: Display "Showing 1-25 of 1,247 results"
+  
+  **Note**: This is the total after filters, not the entire database
+</ResponseField>
+
+## AI-Generated Fields
+
+### AI Recommendation
+
+<ResponseField name="ai_recommendation" type="object">
+  AI-powered recommendation with score and explanation
+  
+  ```json
+  {
+    "score": 0.92,
+    "explanation": "Strong match for fitness content with high engagement"
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="score" type="number">
+  Relevance score from 0 to 1
+  
+  **Range**: `0.0` to `1.0`
+  
+  **Interpretation**:
+  - 0.9-1.0: Excellent match
+  - 0.7-0.89: Strong match
+  - 0.5-0.69: Good match
+  - Below 0.5: Weak match
+</ResponseField>
+
+<ResponseField name="explanation" type="string">
+  Human-readable explanation of the recommendation
+  
+  **Example**: `"Strong match for fitness content with high engagement and authentic wellness focus"`
+</ResponseField>
+
+### AI Analysis
+
+<ResponseField name="ai_analysis" type="object" nullable>
+  AI-generated content insights (optional feature)
+  
+  ```json
+  {
+    "summary": "Post showcases morning workout routine...",
+    "transcript": "Good morning everyone! Today we're doing..."
+  }
+  ```
+  
+  **Only present when**: `features: ["ai_analysis"]` requested
+  
+  **Cost**: +0.5 credits per post
+</ResponseField>
+
+### Brand Safety
+
+<ResponseField name="brand_safety" type="object" nullable>
+  Brand safety analysis with rating and flags
+  
+  ```json
+  {
+    "rating": "A",
+    "overall_confidence": 0.92,
+    "summary": "Content is family-friendly...",
+    "flags": [],
+    "reasoning": "Analysis of 20 recent posts...",
+    "metadata": {...}
+  }
+  ```
+  
+  **Only present when**: Brand safety analysis requested
+</ResponseField>
+
+<ResponseField name="rating" type="string" enum>
+  Brand safety rating
+  
+  **Values**:
+  - `"A"` - Safe (no significant risks)
+  - `"B"` - Moderate (minor concerns)
+  - `"C"` - Risk (significant concerns)
+</ResponseField>
+
+## Response Structures
+
+### Search Response
 
 ```json
 {
-  "items": [...],
-  "filtered_total": 45,
+  "items": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Sarah Fitness",
+      "avatar_url": "https://cdn.influship.com/avatars/sarah.jpg",
+      "bio": "Certified personal trainer",
+      "profiles": [...],
+      "ai_recommendation": {
+        "score": 0.92,
+        "explanation": "Strong match for fitness content"
+      }
+    }
+  ],
+  "filtered_total": 247,
   "has_more": true,
-  "next_cursor": "eyJvZmZzZXQiOjEwfQ=="
+  "next_cursor": "eyJpZCI6MjV9"
+}
+```
+
+### Creator Response
+
+```json
+{
+  "creators": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Sarah Fitness",
+      "bio": "Certified personal trainer and wellness coach",
+      "avatar": "https://cdn.influship.com/avatars/sarah.jpg",
+      "profiles": [...]  // If include_profiles=true
+    }
+  ]
+}
+```
+
+### Profile Response  
+
+```json
+{
+  "profiles": [
+    {
+      "id": "abc123",
+      "creator_profile_id": "123e4567-e89b-12d3-a456-426614174000",
+      "platform": "instagram",
+      "username": "sarah_fitness",
+      "display_name": "Sarah | Fitness Coach",
+      "bio": "Transform your body in 12 weeks 💪",
+      "follower_count": 125000,
+      "engagement_rate": 4.2,
+      "verified": true,
+      "avatar_url": "https://...",
+      "external_url": "https://sarahfitness.com"
+    }
+  ]
 }
 ```
 
@@ -55,33 +512,187 @@ This page explains the data formats and field types used throughout the Influshi
 ```json
 {
   "error": {
-    "code": "invalid_request",
-    "message": "The request is missing required parameters",
+    "code": "validation_error",
+    "message": "Request validation failed",
     "details": {
-      "missing_fields": ["query"]
-    }
-  }
+      "fields": ["query"],
+      "context": "query must be between 1-500 characters"
+    },
+    "request_id": "req_8a7b9c0d1e2f3g4h"
+  },
+  "timestamp": "2024-01-15T10:30:00.000Z"
 }
 ```
 
-## Pagination
+## Field Availability
 
-### Cursor-based Pagination
+### By Response Mode
 
-- Use `next_cursor` from previous response
-- Include `cursor` parameter in next request
-- `has_more` indicates if more results exist
+<Tabs>
+<Tab title="Lite Mode">
+  **Always Available**:
+  - Basic profile info (id, username, display_name)
+  - Follower count, engagement rate
+  - Verification status
+  - Avatar and external URLs
+  
+  **Cost**: Base pricing only
+</Tab>
 
-### Limit Parameter
+<Tab title="Detailed Mode">
+  **Additional Fields**:
+  - Average comments & video views
+  - Monthly follower growth rate
+  - Platform category
+  - Following count, media count
+  - Highlight reel count (Instagram)
+  
+  **Cost**: +0.05 credits per social account
+</Tab>
+</Tabs>
 
-- **Default**: 25
-- **Maximum**: 100
-- **Minimum**: 1
+### By Endpoint
 
-## Rate Limit Headers
+Different endpoints return different field combinations:
 
-All responses include rate limit information:
+<AccordionGroup>
+<Accordion title="/v1/search - Search Results">
+  Returns: Creator data + social accounts + AI recommendation
+  
+  **Unique Fields**: `ai_recommendation`, `filtered_total`
+</Accordion>
 
-- `X-RateLimit-Limit`: Maximum requests per hour
-- `X-RateLimit-Remaining`: Requests remaining this hour
-- `X-RateLimit-Reset`: Unix timestamp when limits reset
+<Accordion title="/v1/creators - Creator Profiles">
+  Returns: Person-level creator data, optionally with social accounts
+  
+  **Unique Fields**: Creator `name`, `bio`, `avatar` (person-level)
+</Accordion>
+
+<Accordion title="/v1/profiles - Social Account Lookup">
+  Returns: Platform-specific social account data
+  
+  **Unique Fields**: `creator_profile_id` for cross-referencing
+</Accordion>
+
+<Accordion title="/v1/posts/* - Post Data">
+  Returns: Post content + metrics + optional AI features
+  
+  **Unique Fields**: `caption`, `media_url`, `likes_count`, `ai_analysis`, `brand_safety`
+</Accordion>
+</AccordionGroup>
+
+## Nullable Fields
+
+Many fields can be `null`. Here's why and how to handle them:
+
+<AccordionGroup>
+<Accordion title="Why null?">
+  Fields are `null` when:
+  - Creator hasn't provided the information
+  - Platform doesn't expose the data
+  - Account is private
+  - Insufficient data for calculations
+  - Feature not requested (e.g., AI features)
+</Accordion>
+
+<Accordion title="Common Nullable Fields">
+  - `bio` - Creator hasn't written a bio
+  - `external_url` - No link in profile
+  - `follower_count` - Private account
+  - `engagement_rate` - Not enough posts to calculate
+  - `ai_analysis` - Feature not requested
+  - `thumbnail_url` - Post is not a video
+</Accordion>
+
+<Accordion title="Handling null in Code">
+  ```javascript
+  // JavaScript - Use optional chaining and nullish coalescing
+  const followers = creator.follower_count ?? 0;
+  const bio = creator.bio ?? "No bio provided";
+  
+  // Python - Use get() with default
+  followers = creator.get('follower_count') or 0
+  bio = creator.get('bio') or "No bio provided"
+  ```
+</Accordion>
+</AccordionGroup>
+
+## Data Freshness
+
+### Real-time vs Cached
+
+<Warning>
+Data freshness varies by field and endpoint. Understanding this helps set correct expectations.
+</Warning>
+
+<ResponseField name="Real-time Fields" type="info">
+  Updated with every API request:
+  - Creator existence checks
+  - API metadata (request_id, credits)
+  - Pagination state
+</ResponseField>
+
+<ResponseField name="Cached Fields (Updated Periodically)" type="warning">
+  Updated every 24-48 hours:
+  - Follower counts
+  - Engagement metrics
+  - Post counts
+  - Avatar URLs
+  
+  **Check `scraped_at` timestamp** to know when data was last updated
+</ResponseField>
+
+<ResponseField name="Historical Fields" type="note">
+  Rarely change after creation:
+  - Post content (caption, media)
+  - Posted timestamps
+  - Creator IDs
+</ResponseField>
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Check for null" icon="circle-exclamation">
+  Always handle nullable fields gracefully with defaults or conditional rendering
+</Card>
+
+<Card title="Use TypeScript/Types" icon="code">
+  Leverage type definitions to catch null handling issues at compile time
+</Card>
+
+<Card title="Cache URLs" icon="images">
+  Avatar and media URLs expire after 24-48 hours - cache images to avoid broken links
+</Card>
+
+<Card title="Respect Data Freshness" icon="clock">
+  Check `scraped_at` timestamps when data recency matters
+</Card>
+
+<Card title="Parse Timestamps Correctly" icon="calendar">
+  Always parse ISO 8601 strings to native date objects in your timezone
+</Card>
+
+<Card title="Handle Large Numbers" icon="hashtag">
+  Use appropriate number types for follower counts (can exceed 32-bit integers)
+</Card>
+
+</CardGroup>
+
+## Need Help?
+
+<CardGroup cols={3}>
+
+<Card title="API Reference" icon="book" href="/api-reference/introduction">
+  Complete endpoint documentation
+</Card>
+
+<Card title="Code Examples" icon="code" href="/examples">
+  See data formats in action
+</Card>
+
+<Card title="Support" icon="headset" href="/support/contact">
+  Get technical assistance
+</Card>
+
+</CardGroup>

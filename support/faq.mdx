@@ -9,80 +9,527 @@ description: 'Frequently asked questions about the Influship API'
 
 ### How do I get an API key?
 
-1. Sign up at [dashboard.influship.com](https://dashboard.influship.com)
-2. Navigate to the **API Keys** section
-3. Click **Generate New Key**
-4. Copy and store your key securely
+Contact [elliot@influship.com](mailto:elliot@influship.com) to receive your API key instantly. 
+
+<Info>
+**Self-serve dashboard coming soon** - Generate and manage API keys directly from a web interface.
+</Info>
+
+### Do I need a credit card to get started?
+
+No! The free tier provides 1,000 credits/month with no credit card required. Perfect for testing and small projects.
 
 ### What's the difference between free and pro tiers?
 
-- **Free**: 1,000 requests per hour, basic creator search and profiles
-- **Pro**: 10,000 requests per hour, advanced features including email discovery, brand safety analysis, and lookalike matching
+| Feature | Free Tier | Pro Tier |
+|---------|-----------|----------|
+| Credits/month | 1,000 | 10,000+ |
+| Rate limit | 1,000 req/hour | 10,000 req/hour |
+| Email discovery | ❌ | ✅ |
+| Brand safety | ✅ | ✅ |
+| Support | Community | Priority |
+| Cost | Free | Custom pricing |
+
+See [Pricing](/essentials/pricing) for complete details.
 
 ### How do I test if my API key works?
 
-Use the health endpoint:
+Test with the health endpoint (no authentication required):
 
 ```bash
-curl -H "X-API-Key: YOUR_KEY" https://api.influship.com/health
+curl https://api.influship.com/health
+```
+
+Then verify authentication with a simple search:
+
+```bash
+curl -X POST https://api.influship.com/v1/search \
+  -H 'X-API-Key: YOUR_KEY' \
+  -d '{"query": "test", "limit": 1}'
 ```
 
 ## API Usage
 
 ### Why am I getting empty search results?
 
-This usually happens when:
-- Your search query is too specific or narrow
-- The creator database doesn't have data for your target criteria
-- You're using filters that exclude all available creators
+Common reasons:
 
-Try broadening your search terms or removing some filters.
+1. **Query too specific** - Try broader search terms
+2. **Filters too restrictive** - Remove some filters
+3. **Platform coverage** - Check if the platform is supported
+4. **Typos in query** - Double-check spelling
+
+**Example:** Instead of "vegan fitness trainers in San Francisco with 50k-60k followers", try "vegan fitness creators" first, then add filters.
 
 ### What platforms are supported?
 
-Currently only Instagram is supported. Additional platforms coming soon.
+| Platform | Status | Coverage |
+|----------|--------|----------|
+| Instagram | ✅ Fully supported | Complete |
+| TikTok | 🚧 Partial support | Growing |
+| YouTube | 🔜 Coming soon | - |
+| Twitter/X | 🔜 Coming soon | - |
 
-### How do I handle rate limits?
-
-Rate limit information is in response headers:
-
-- `X-RateLimit-Remaining`: Requests left this hour
-- `X-RateLimit-Reset`: When limits reset
+<Info>
+Instagram is fully supported across all endpoints. TikTok support is expanding.
+</Info>
 
 ### What's the difference between lite and detailed mode?
 
-- **Lite**: Basic creator information including followers, engagement rate, and verification status (default)
-- **Detailed**: Extended metrics, additional platform profiles, and premium data like email addresses (requires `include: ["emails"]`)
+**Lite Mode** (`mode: "lite"`)
+- Basic creator info (name, bio, avatar)
+- Essential metrics (follower count, platform)
+- Faster responses
+- Lower cost
 
-## Errors
+**Detailed Mode** (`mode: "detailed"`)
+- Everything in lite mode
+- Extended metrics (engagement rate, avg likes, posting frequency)
+- Additional profile data
+- Slightly higher cost (+0.04-0.05 credits per social account)
+
+**When to use each:**
+- **Lite**: Initial discovery, autocomplete, list views
+- **Detailed**: Final analysis, detailed profiles, decision-making
+
+### How do I get creator email addresses?
+
+Email discovery is available in the **Pro tier** only:
+
+```bash
+curl -X POST https://api.influship.com/v1/creators \
+  -H 'X-API-Key: YOUR_KEY' \
+  -d '{
+    "creator_ids": ["..."],
+    "mode": "detailed",
+    "include": ["emails"]
+  }'
+```
+
+**Cost**: Additional 0.5 credits per creator
+
+<Warning>
+Emails are provided for legitimate business use only. Respect privacy laws and anti-spam regulations.
+</Warning>
+
+### How do I handle rate limits?
+
+Monitor rate limit headers in every response:
+
+```http
+RateLimit-Limit: 10000
+RateLimit-Remaining: 9997
+RateLimit-Reset: 1640995200
+```
+
+**Best practices:**
+1. Check `RateLimit-Remaining` before making requests
+2. Implement exponential backoff for 429 errors
+3. Cache responses to reduce API calls
+4. Batch requests when possible
+
+See [Rate Limits](/essentials/rate-limits) for implementation examples.
+
+### Can I search for creators on multiple platforms at once?
+
+Yes! The search endpoint returns creators across all supported platforms:
+
+```bash
+curl -X POST https://api.influship.com/v1/search \
+  -H 'X-API-Key: YOUR_KEY' \
+  -d '{
+    "query": "fitness creators",
+    "filters": {
+      "platform_filters": [
+        {
+          "platform": "instagram",
+          "min_followers": 10000
+        },
+        {
+          "platform": "tiktok",
+          "min_followers": 50000
+        }
+      ]
+    }
+  }'
+```
+
+Each platform can have different filter criteria.
+
+### How accurate are engagement rates?
+
+Engagement rates are calculated from recent post data (typically last 12-50 posts) and updated regularly:
+
+**Formula**: `(Likes + Comments) / Followers × 100`
+
+**Accuracy:**
+- ✅ Very accurate for public accounts
+- ⚠️ Limited for private accounts
+- 🔄 Updated weekly for active creators
+
+Engagement rates are marked as `null` when insufficient data is available.
+
+## Errors & Troubleshooting
 
 ### I'm getting 401 Unauthorized errors
 
-- Check that your API key is correct
-- Ensure you're using the `X-API-Key` header
-- Verify your API key is active
+**Possible causes:**
+
+1. **Missing API key**
+   ```bash
+   # ❌ Wrong
+   curl https://api.influship.com/v1/search
+   
+   # ✅ Correct
+   curl -H 'X-API-Key: YOUR_KEY' https://api.influship.com/v1/search
+   ```
+
+2. **Wrong header name**
+   - Must be `X-API-Key` (case-sensitive)
+   - Not `Authorization` or `API-Key`
+
+3. **Invalid API key**
+   - Check for typos
+   - Verify key is active
+   - Contact support if issue persists
 
 ### I'm getting 429 Rate Limited errors
 
-- You've exceeded your hourly request limit
-- Wait for the rate limit to reset
-- Consider upgrading your plan
+You've exceeded your hourly request limit:
+
+1. **Check your rate limit:**
+   - Free tier: 1,000 requests/hour
+   - Pro tier: 10,000 requests/hour
+
+2. **Wait for reset:**
+   - Check `RateLimit-Reset` header (Unix timestamp)
+   - Or check `Retry-After` header (seconds)
+
+3. **Implement backoff:**
+   ```javascript
+   if (response.status === 429) {
+     const retryAfter = response.headers.get('Retry-After');
+     await sleep(retryAfter * 1000);
+     // Retry request
+   }
+   ```
+
+4. **Optimize usage:**
+   - Cache responses
+   - Batch requests
+   - Use debouncing for autocomplete
+
+5. **Upgrade plan:**
+   - Contact sales for higher limits
 
 ### I'm getting 500 Internal Server errors
 
-- This is a server-side issue
-- Check [status.influship.com](https://status.influship.com) for updates
-- Contact support if the issue persists
+This indicates a server-side issue:
+
+1. **Check status page:** [status.influship.com](https://status.influship.com) *(coming soon)*
+2. **Note the request ID:** Found in `X-Request-Id` response header
+3. **Contact support:** Email [support@influship.com](mailto:support@influship.com) with:
+   - Request ID
+   - Timestamp
+   - Request details (endpoint, parameters)
+
+We typically respond within:
+- Free tier: 48-72 hours
+- Pro tier: 24-48 hours
+- Enterprise: 4-12 hours (SLA guaranteed)
+
+### Creator not found errors
+
+```json
+{
+  "error": {
+    "code": "creator_not_found",
+    "message": "Creator not found: instagram/username"
+  }
+}
+```
+
+**Possible reasons:**
+
+1. **Username typo** - Double-check spelling
+2. **Platform mismatch** - Verify the platform is correct
+3. **Private/deleted account** - Account may be private or removed
+4. **Not in database** - Creator hasn't been indexed yet
+
+**Solution:** Try searching for the creator first using `/v1/search` instead of direct lookup.
+
+## Billing & Pricing
+
+### How much does it cost?
+
+Costs vary by endpoint and features used. Every response includes `X-Credits-Charged` header showing exact cost.
+
+**Common costs:**
+- Search: 2.0 credits per creator
+- Autocomplete: 0.001 credits per request
+- Creator profiles: 0.1 credits per creator
+- Brand safety: 2.0 credits per creator
+
+See [Pricing](/essentials/pricing) for complete pricing details.
+
+### How do I monitor my credit usage?
+
+Check response headers:
+
+```http
+X-Credits-Charged: 2.5
+X-Credits-Features: search,detailed
+X-Billing-Plan: pro
+```
+
+**Programmatic monitoring:**
+
+```javascript
+const creditsUsed = response.headers.get('X-Credits-Charged');
+const features = response.headers.get('X-Credits-Features');
+
+console.log(`Used ${creditsUsed} credits for: ${features}`);
+```
+
+<Info>
+**Usage dashboard coming soon** - Track daily/monthly usage, costs, and trends in real-time.
+</Info>
+
+### Do unused credits roll over?
+
+No. Credits reset monthly on your billing date. 
+
+**Exception:** Enterprise customers can negotiate custom rollover terms.
+
+### Can I get a refund?
+
+Credits are non-refundable. However, we're happy to work with you on:
+- Plan changes
+- Billing adjustments for errors
+- Custom pricing for unique situations
+
+Contact [support@influship.com](mailto:support@influship.com) for billing questions.
+
+### What happens if I run out of credits?
+
+Requests will fail with `402 Payment Required`:
+
+```json
+{
+  "error": {
+    "code": "insufficient_credits",
+    "message": "Insufficient credits. Upgrade your plan or purchase additional credits."
+  }
+}
+```
+
+**Solutions:**
+1. Upgrade to Pro tier
+2. Purchase additional credit packages
+3. Wait until monthly reset (free tier)
+
+## Features & Capabilities
+
+### What is lookalike discovery?
+
+Find creators similar to your top performers using AI-powered similarity matching:
+
+```bash
+curl -X POST https://api.influship.com/v1/lookalike \
+  -H 'X-API-Key: YOUR_KEY' \
+  -d '{
+    "seeds": [
+      {"platform": "instagram", "username": "topCreator"}
+    ]
+  }'
+```
+
+**Matches based on:**
+- Content topics and style
+- Audience demographics
+- Engagement patterns
+- Creator behavior
+
+See [Lookalike Discovery](/guides/lookalike-discovery) for details.
+
+### What is brand safety analysis?
+
+Automated analysis to ensure creators align with your brand values:
+
+```bash
+curl -X POST https://api.influship.com/v1/brand-safety/creators \
+  -H 'X-API-Key: YOUR_KEY' \
+  -d '{"creator_ids": ["..."]}'
+```
+
+**Analyzes:**
+- Content appropriateness
+- Past controversies
+- Language used
+- Risk assessment
+
+**Cost:** 2.0 credits per creator
+
+### Can I analyze individual posts?
+
+Yes! Use the post analysis endpoint:
+
+```bash
+curl -X POST https://api.influship.com/v1/posts/analyze \
+  -H 'X-API-Key: YOUR_KEY' \
+  -d '{
+    "platform": "instagram",
+    "url": "https://instagram.com/p/POST_ID",
+    "mode": "detailed"
+  }'
+```
+
+**Returns:**
+- Engagement metrics (likes, comments, shares)
+- Performance vs. creator average
+- Content topics and hashtags (with AI analysis)
+- Brand safety score (if requested)
+
+**Cost:** 1.0 credit base + optional features
+
+### Does the API support webhooks?
+
+Not yet, but webhooks are planned for:
+- Creator data updates
+- New creator discoveries
+- Brand safety alerts
+- Custom events
+
+<Info>
+**Webhooks are coming** to Enterprise plans in Q2 2025. Contact sales to express interest.
+</Info>
 
 ## Support
 
 ### How do I get help?
 
-- Email: [support@influship.com](mailto:support@influship.com)
-- Check the [Quickstart Guide](/quickstart)
-- Review the [API Reference](/api-reference)
+<CardGroup cols={2}>
+<Card title="Email Support" icon="envelope">
+  [support@influship.com](mailto:support@influship.com)
+  
+  - Free tier: 48-72 hours
+  - Pro tier: 24-48 hours
+  - Enterprise: 4-12 hours (SLA)
+</Card>
 
-### What's the response time for support?
+<Card title="Documentation" icon="book">
+  [docs.influship.com](https://docs.influship.com)
+  
+  - Quickstart guide
+  - API reference
+  - Code examples
+  - Best practices
+</Card>
 
-- **Free tier**: 48-72 hours
-- **Pro tier**: 24-48 hours
+<Card title="Sales" icon="dollar-sign">
+  [elliot@influship.com](mailto:elliot@influship.com)
+  
+  - Plan upgrades
+  - Custom pricing
+  - Enterprise features
+  - Volume discounts
+</Card>
+
+<Card title="Status Page" icon="signal">
+  Coming soon
+  
+  - Real-time status
+  - Incident history
+  - Scheduled maintenance
+  - Subscribe to updates
+</Card>
+</CardGroup>
+
+### How do I report a bug?
+
+Email [support@influship.com](mailto:support@influship.com) with:
+
+1. **Request ID** (from `X-Request-Id` header)
+2. **Timestamp** of the issue
+3. **Endpoint** and request details
+4. **Expected vs actual behavior**
+5. **Steps to reproduce**
+
+We prioritize bug reports and typically respond within 24 hours.
+
+### How do I request a feature?
+
+We love feature requests! Email [support@influship.com](mailto:support@influship.com) with:
+
+- **Feature description**
+- **Use case** (how you'd use it)
+- **Priority** (nice-to-have vs critical)
+
+We review all requests and prioritize based on customer demand.
+
+## Best Practices
+
+### How should I cache API responses?
+
+**Recommended TTLs:**
+
+| Data Type | Cache Duration | Reason |
+|-----------|----------------|---------|
+| Creator profiles | 24-48 hours | Stable data, infrequent changes |
+| Search results | 1-6 hours | Dynamic, relevance may change |
+| Autocomplete | 5-10 minutes | Fresh suggestions preferred |
+| Brand safety | 7 days | Infrequent re-analysis needed |
+| Post data | 24 hours | Engagement metrics update daily |
+
+**Example:**
+
+```javascript
+const cache = new Map();
+
+async function getCachedCreator(creatorId) {
+  const cacheKey = `creator:${creatorId}`;
+  const cached = cache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < 86400000) { // 24 hours
+    return cached.data;
+  }
+  
+  const data = await fetchCreator(creatorId);
+  cache.set(cacheKey, { data, timestamp: Date.now() });
+  
+  return data;
+}
+```
+
+### Should I use batch endpoints?
+
+**Yes!** Batch endpoints are more efficient:
+
+```bash
+# ❌ Inefficient - 3 separate requests
+GET /v1/creators/{id1}
+GET /v1/creators/{id2}
+GET /v1/creators/{id3}
+
+# ✅ Efficient - 1 batch request
+POST /v1/creators
+{"creator_ids": ["id1", "id2", "id3"]}
+```
+
+**Benefits:**
+- Fewer API calls
+- Lower latency
+- Better rate limit usage
+- Same cost per creator
+
+## Still Have Questions?
+
+<CardGroup cols={2}>
+<Card title="Contact Support" icon="envelope" href="mailto:support@influship.com">
+  Email us your questions
+</Card>
+
+<Card title="Browse Docs" icon="book" href="/api-reference">
+  Explore complete documentation
+</Card>
+</CardGroup>

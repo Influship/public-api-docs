@@ -1,11 +1,11 @@
 ---
 title: 'API Reference'
-description: 'Complete reference for the Influship API endpoints'
+description: 'Complete reference for the Influship API - AI-powered influencer discovery and analysis'
 ---
 
 # API Reference
 
-Complete documentation for all Influship API endpoints.
+Comprehensive documentation for the Influship API. Build powerful influencer marketing applications with our AI-powered search, analysis, and matching capabilities.
 
 ## Base URL
 
@@ -17,110 +17,589 @@ https://api.influship.com
 
 ## Authentication
 
-All requests require an API key in the `X-API-Key` header:
+All endpoints (except `/health`) require an API key passed in the `X-API-Key` header:
 
 ```bash
-curl -H "X-API-Key: YOUR_API_KEY" https://api.influship.com/health
+curl -H "X-API-Key: YOUR_API_KEY" https://api.influship.com/v1/search
 ```
+
+<Warning>
+**Keep your API key secure!** Never expose your API key in client-side code or public repositories. Treat it like a password.
+</Warning>
+
+## Pagination
+
+Endpoints returning lists use **cursor-based pagination** for efficient data traversal:
+
+### How It Works
+
+1. **Request with limit** - Set how many results you want per page (default: 25, max: 100)
+2. **Check `has_more`** - Response indicates if more results exist
+3. **Use `next_cursor`** - Pass this value as `cursor` parameter for the next page
+4. **Track total** - Use `filtered_total` to show total matching results
+
+<CodeGroup>
+
+```bash First Page
+curl "https://api.influship.com/v1/search?limit=25" \
+  -H "X-API-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "fitness influencers"}'
+  
+# Response includes:
+# {
+#   "items": [...],
+#   "filtered_total": 247,
+#   "has_more": true,
+#   "next_cursor": "eyJpZCI6MjV9"
+# }
+```
+
+```bash Next Page
+curl "https://api.influship.com/v1/search?limit=25&cursor=eyJpZCI6MjV9" \
+  -H "X-API-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "fitness influencers"}'
+```
+
+</CodeGroup>
+
+<Note>
+**Cursors are opaque** - They're base64-encoded strings containing pagination state. Never try to construct or decode them manually. Always use the exact `next_cursor` value from the previous response.
+</Note>
+
+### Pagination Fields
+
+<ParamField path="limit" type="integer" default="25">
+  Number of results per page. Min: 1, Max: 100
+</ParamField>
+
+<ParamField path="cursor" type="string">
+  Opaque pagination cursor from previous response's `next_cursor`
+</ParamField>
+
+<ParamField path="filtered_total" type="integer">
+  Total matching results before pagination. Use this to show "25 of 1,247 results"
+</ParamField>
+
+<ParamField path="has_more" type="boolean">
+  Whether additional pages exist. If `true`, use `next_cursor` to fetch more
+</ParamField>
 
 ## Response Format
 
-All responses are in JSON format with the following structure:
-
 ### Success Response
+
+All successful responses follow this structure:
 
 ```json
 {
-  "data": {...},
-  "meta": {...}
+  "items": [...],          // Or other data field
+  "filtered_total": 247,   // Total matching results (for paginated endpoints)
+  "has_more": true,        // More pages available
+  "next_cursor": "..."     // Cursor for next page
 }
 ```
 
 ### Error Response
 
+All errors include a structured error object with actionable details:
+
 ```json
 {
   "error": {
-    "code": "error_code",
-    "message": "Human readable error message",
-    "details": {...}
-  }
+    "code": "validation_error",
+    "message": "Request validation failed",
+    "details": {
+      "fields": ["query"],
+      "context": "query must be between 1-500 characters"
+    },
+    "request_id": "req_8a7b9c0d1e2f3g4h"
+  },
+  "timestamp": "2024-01-15T10:30:00.000Z"
 }
 ```
 
-## HTTP Status Codes
+<AccordionGroup>
+<Accordion title="Common Error Codes">
+  - `validation_error` - Request validation failed (400)
+  - `unauthorized` - Invalid or missing API key (401)
+  - `not_found` - Resource not found (404)
+  - `rate_limit_exceeded` - Too many requests (429)
+  - `internal_error` - Server error (500)
+</Accordion>
 
-- `200` - Success
-- `400` - Bad Request
-- `401` - Unauthorized
-- `404` - Not Found
-- `429` - Rate Limited
-- `500` - Internal Server Error
+<Accordion title="Endpoint-Specific Errors">
+  - `seed_not_found` - Lookalike seed creator not found (404)
+  - `invalid_seeds` - Invalid seed data provided (400)
+  - `brand_safety_failed` - Brand safety analysis failed (500)
+  - `post_analysis_failed` - Post analysis failed (500)
+</Accordion>
+</AccordionGroup>
+
+## Response Headers
+
+Every API response includes metadata headers for tracking usage and limits:
+
+### Billing & Usage Headers
+
+<ResponseField name="X-Request-Id" type="string">
+  Unique identifier for this request. Include in support tickets for faster troubleshooting.
+  
+  **Example**: `req_8a7b9c0d1e2f3g4h`
+</ResponseField>
+
+<ResponseField name="X-Credits-Charged" type="string">
+  Exact number of credits consumed by this request
+  
+  **Example**: `4.15`
+</ResponseField>
+
+<ResponseField name="X-Credits-Features" type="string">
+  Comma-separated list of features that impacted billing
+  
+  **Example**: `detailed_mode,ai_analysis`
+</ResponseField>
+
+<ResponseField name="X-Billing-Plan" type="string">
+  Your current billing plan identifier
+  
+  **Example**: `pro`
+</ResponseField>
+
+### Rate Limit Headers
+
+<ResponseField name="RateLimit-Limit" type="string">
+  Maximum requests allowed in the current time window
+  
+  **Example**: `10000`
+</ResponseField>
+
+<ResponseField name="RateLimit-Remaining" type="string">
+  Requests remaining in current window
+  
+  **Example**: `9995`
+</ResponseField>
+
+<ResponseField name="RateLimit-Reset" type="string">
+  Unix timestamp (seconds) when rate limit resets
+  
+  **Example**: `1704124800`
+</ResponseField>
+
+## Credits & Billing
+
+The Influship API uses a **flexible credit-based system** that scales with your usage.
+
+### Pricing Models
+
+<CardGroup cols={2}>
+
+<Card title="Search & Discovery" icon="magnifying-glass">
+  **Creator Search**: 2.0 credits per creator
+  
+  **Lookalike**: 1.0 credit per creator
+  
+  **Detailed mode**: +0.05 per social account
+  
+  _Example: 10 creators in detailed mode with 3 profiles each = 20 + (10 × 3 × 0.05) = 21.5 credits_
+</Card>
+
+<Card title="Creator Data" icon="user">
+  **Creator Profiles**: 0.1 credits per creator
+  
+  **Profile Lookup**: 0.01-0.05 credits (lite/detailed)
+  
+  **Autocomplete**: 0.001 credits per request
+</Card>
+
+<Card title="Content Analysis" icon="chart-bar">
+  **Post Analysis**: 1.0 credit per post
+  
+  **AI Analysis**: +0.5 credits per post
+  
+  **Brand Safety**: +0.5 credits per post
+  
+  _Example: 1 post with both features = 1.0 + 0.5 + 0.5 = 2.0 credits_
+</Card>
+
+<Card title="Brand Safety & Matching" icon="shield-check">
+  **Creator Analysis**: 2.0 credits per creator
+  
+  **Profile Analysis**: 2.0 credits per profile
+  
+  **Post Analysis**: 0.5 credits per post
+  
+  **Creator Matching**: 0.1 credits per creator
+</Card>
+
+</CardGroup>
+
+<Tip>
+See detailed pricing with real-world examples in our [Pricing Guide](/essentials/pricing).
+</Tip>
+
+## Common Patterns
+
+Understanding these workflows helps you build efficient integrations.
+
+### 1. Discovery → Enrichment Flow
+
+<Steps>
+<Step title="Lookup by Username">
+  Call `/v1/profiles` with username + platform
+  
+  **Result**: Social account data + `creator_profile_id`
+</Step>
+
+<Step title="Get All Accounts">
+  Use `creator_profile_id` with `/v1/creators/{id}/profiles`
+  
+  **Result**: All social accounts for that creator
+</Step>
+
+<Step title="Get Creator Info">
+  Use `creator_profile_id` with `/v1/creators`
+  
+  **Result**: Person-level data (name, bio, avatar)
+</Step>
+</Steps>
+
+### 2. Search → Analysis Flow
+
+<Steps>
+<Step title="Search">
+  Use `/v1/search` with natural language query
+  
+  **Result**: Matching creators with AI recommendations
+</Step>
+
+<Step title="Analyze">
+  Use returned creator IDs with brand safety or match endpoints
+  
+  **Result**: Suitability scores and risk assessment
+</Step>
+
+<Step title="Deep Dive">
+  Get posts via `/v1/posts/by-creator` for content analysis
+  
+  **Result**: Detailed post data with optional AI features
+</Step>
+</Steps>
+
+### 3. Lookalike Discovery
+
+<Steps>
+<Step title="Identify Seeds">
+  Choose 1-10 seed creators (by ID or username+platform)
+  
+  Add optional weights (0-10) to prioritize certain seeds
+</Step>
+
+<Step title="Set Filters">
+  Define audience size, engagement rate, platforms, verification
+  
+  Filter results to match your campaign criteria
+</Step>
+
+<Step title="Get Results">
+  API returns similar creators ranked by AI similarity score
+  
+  Each result includes explanation of why they're similar
+</Step>
+</Steps>
+
+## Platform Support
+
+<ResponseField name="Instagram" type="string" default="✅ Fully Supported">
+  All endpoints support Instagram with complete feature coverage
+</ResponseField>
+
+<ResponseField name="TikTok" type="string" default="✅ Supported">
+  Available on most endpoints - check endpoint-specific documentation
+</ResponseField>
+
+<ResponseField name="YouTube, Twitter/X" type="string" default="🔜 Coming Soon">
+  Additional platforms in development
+</ResponseField>
+
+## Data Concepts
+
+### Creator vs Profile Data
+
+Understanding the difference is key to using the API effectively:
+
+<CardGroup cols={2}>
+
+<Card title="Creator Data" icon="user">
+  **Person-level information**
+  
+  - Name, bio, avatar
+  - Cross-platform identity
+  - Aggregated information
+  
+  **Endpoint**: `/v1/creators`
+</Card>
+
+<Card title="Profile Data" icon="instagram">
+  **Platform-specific metrics**
+  
+  - Follower counts, engagement
+  - Verified status
+  - Platform username & handle
+  
+  **Endpoints**: `/v1/profiles`, `/v1/creators/{id}/profiles`
+</Card>
+
+</CardGroup>
+
+### Response Modes
+
+Control the level of detail in API responses:
+
+<ParamField path="mode" type="string" default="lite">
+  **`lite`** - Basic fields only (faster, cheaper)
+  
+  **`detailed`** - Extended metrics and analytics (+0.05 credits per social account)
+</ParamField>
+
+<Accordion title="Lite Mode Fields">
+  - Basic profile info (username, display name, bio)
+  - Follower count, engagement rate
+  - Verification status
+  - Avatar and external URLs
+</Accordion>
+
+<Accordion title="Detailed Mode Additional Fields">
+  - Average comments & video views
+  - Monthly follower growth rate
+  - Platform category
+  - Following count, media count
+  - Highlight reel count (Instagram)
+</Accordion>
 
 ## Rate Limits
 
-- **Free tier**: 1,000 requests per hour
-- **Pro tier**: 10,000 requests per hour
+Rate limits ensure fair usage and system stability:
 
-Rate limit information is included in response headers.
+### By Plan
 
-## Billing & Credits
+- **Free**: 1,000 requests/hour
+- **Pro**: 10,000 requests/hour  
+- **Enterprise**: Custom limits (50,000+)
 
-- Responses include billing headers:
-  - `X-Credits-Charged`: credits billed for this request
-  - `X-Credits-Features`: pricing-impacting features, e.g. `emails`
-  - `X-Billing-Plan`: your plan identifier
+<Info>
+All responses include `RateLimit-*` headers. Monitor these to avoid hitting limits. See our [Rate Limits Guide](/essentials/rate-limits) for handling strategies.
+</Info>
 
-### Request parameters that affect billing
+## HTTP Status Codes
 
-- **mode**: `lite` (default) | `detailed` – controls richness of normalized fields
-- **scope**: `seed_platform` (default) | `all_platforms` – whether to include all known profiles
-- **include**: array – feature toggles; currently supports `emails`
-- **live**: boolean – when true, returns `202 Accepted` with `job_id` and applies a live multiplier
+<ResponseField name="200" type="Success">
+  Request successful, response contains requested data
+</ResponseField>
 
-> Emails are billed as a premium add-on. To request them, pass `include=emails`.
+<ResponseField name="400" type="Bad Request">
+  Invalid request parameters or validation failed
+</ResponseField>
 
-### Example
+<ResponseField name="401" type="Unauthorized">
+  Missing or invalid API key
+</ResponseField>
 
-```http
-POST /v1/creators
-{ "creator_ids": ["UUID"], "mode": "detailed", "result_scope": "all_platforms", "include": ["emails"] }
-X-Credits-Charged: 2.40
-X-Credits-Features: emails
-X-Billing-Plan: pro
-```
+<ResponseField name="404" type="Not Found">
+  Requested resource doesn't exist
+</ResponseField>
 
-## Live Processing
+<ResponseField name="429" type="Rate Limited">
+  Too many requests - check `Retry-After` header
+</ResponseField>
 
-- For heavy operations, set `live=true`
-- Behavior:
-  - `live=false` (default): returns cached data with 200 if available; may return 202 on cache-miss
-  - `live=true`: always returns 202 with `{ job_id }`; results delivered via polling or webhooks
+<ResponseField name="500" type="Internal Error">
+  Server error - contact support with `X-Request-Id`
+</ResponseField>
 
-## Endpoints
+## API Endpoints
 
 <CardGroup cols={2}>
-<Card title="Health Check" icon="heart" href="/api-reference/health">
-  `GET /health` - API status monitoring
+
+<Card title="Search Creators" icon="magnifying-glass" href="/api-reference/search-creators">
+  `POST /v1/search`
+  
+  AI-powered influencer discovery with natural language queries
 </Card>
 
-<Card
-  title='Search Creators'
-  icon='search'
-  href='/api-reference/search-creators'
->
-  `POST /v1/search` - AI-powered influencer discovery
+<Card title="Autocomplete" icon="bolt" href="/api-reference/autocomplete">
+  `GET /v1/creators/autocomplete`
+  
+  Real-time search suggestions for creator discovery
 </Card>
 
-<Card title='Creators' icon='user' href='/api-reference/get-creators'>
-  `POST /v1/creators` - Detailed creator profiles (batch)
+<Card title="Get Creators" icon="users" href="/api-reference/get-creators">
+  `GET /v1/creators`
+  
+  Retrieve creator profiles by ID with optional social accounts
 </Card>
 
-<Card title='Lookalike' icon='sparkles' href='/api-reference/lookalike'>
-  `POST /v1/lookalike` - Find similar creators
+<Card title="Get Profiles" icon="id-card" href="/api-reference/get-profiles">
+  `POST /v1/profiles`
+  
+  Look up social accounts by username and platform
 </Card>
 
-<Card title="Post Analysis" icon="chart-bar" href="/api-reference/analyze-posts">
-  `POST /v1/posts/analyze` - Analyze Instagram posts
+<Card title="Creator's Profiles" icon="grid" href="/api-reference/creator-profiles">
+  `GET /v1/creators/{id}/profiles`
+  
+  Get all social accounts for a specific creator
 </Card>
+
+<Card title="Lookalike Discovery" icon="sparkles" href="/api-reference/lookalike">
+  `POST /v1/lookalike`
+  
+  Find similar creators using AI-powered analysis
+</Card>
+
+<Card title="Analyze Post" icon="chart-line" href="/api-reference/analyze-post">
+  `POST /v1/posts/analyze`
+  
+  Analyze individual posts with AI insights
+</Card>
+
+<Card title="Posts by Creator" icon="images" href="/api-reference/posts-by-creator">
+  `GET /v1/posts/by-creator`
+  
+  Retrieve posts from a creator's account
+</Card>
+
+<Card title="Match Creators" icon="bullseye" href="/api-reference/match-creators">
+  `POST /v1/match`
+  
+  Match creators to campaign requirements
+</Card>
+
+<Card title="Brand Safety - Creators" icon="shield-check" href="/api-reference/brand-safety-creators">
+  `POST /v1/brand-safety/creators`
+  
+  Analyze creators for brand safety risks
+</Card>
+
+<Card title="Brand Safety - Profiles" icon="shield-halved" href="/api-reference/brand-safety-profiles">
+  `POST /v1/brand-safety/profiles`
+  
+  Analyze social profiles for brand risks
+</Card>
+
+<Card title="Brand Safety - Posts" icon="shield-exclamation" href="/api-reference/brand-safety-posts">
+  `POST /v1/brand-safety/posts`
+  
+  Analyze posts for brand safety concerns
+</Card>
+
+</CardGroup>
+
+## Quick Start
+
+<CodeGroup>
+
+```bash cURL
+# Search for fitness influencers
+curl -X POST https://api.influship.com/v1/search \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "fitness influencers with 100k+ followers",
+    "mode": "detailed",
+    "filters": {
+      "platform_filters": [{
+        "platform": "instagram",
+        "min_followers": 100000,
+        "min_engagement_rate": 3
+      }]
+    }
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.influship.com/v1/search', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': process.env.INFLUSHIP_API_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    query: 'fitness influencers with 100k+ followers',
+    mode: 'detailed'
+  })
+});
+
+const data = await response.json();
+console.log(`Found ${data.filtered_total} creators`);
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.influship.com/v1/search',
+    headers={
+        'X-API-Key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'query': 'fitness influencers with 100k+ followers',
+        'mode': 'detailed'
+    }
+)
+
+data = response.json()
+print(f"Found {data['filtered_total']} creators")
+```
+
+</CodeGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Use Lite Mode First" icon="zap">
+  Start with `mode: "lite"` for exploration, upgrade to `detailed` only when you need extended metrics
+</Card>
+
+<Card title="Batch Requests" icon="layer-group">
+  Use batch endpoints (e.g., `/v1/creators?creator_ids=id1,id2,id3`) to reduce API calls
+</Card>
+
+<Card title="Implement Caching" icon="database">
+  Cache frequently accessed data to minimize costs and improve performance
+</Card>
+
+<Card title="Monitor Headers" icon="chart-line">
+  Track rate limit and billing headers to optimize usage and avoid surprises
+</Card>
+
+<Card title="Handle Errors Gracefully" icon="triangle-exclamation">
+  Implement exponential backoff for 429 errors and proper error handling for all status codes
+</Card>
+
+<Card title="Use Filters" icon="filter">
+  Apply search filters to reduce result sets and save on credits
+</Card>
+
+</CardGroup>
+
+## Need Help?
+
+<CardGroup cols={3}>
+
+<Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+  Get up and running in 5 minutes
+</Card>
+
+<Card title="Code Examples" icon="code" href="/examples">
+  Real-world implementation examples
+</Card>
+
+<Card title="Support" icon="headset" href="/support/contact">
+  Contact our support team
+</Card>
+
 </CardGroup>

@@ -1,170 +1,353 @@
 ---
 title: 'Pricing & Credits'
-description: 'Understand Influship API pricing, credit system, and billing models'
+description: 'Credit-based pricing that scales with your usage'
 ---
 
 # Pricing & Credits
 
-The Influship API uses a flexible credit-based pricing system that scales with your usage and needs.
+The Influship API uses a flexible credit-based pricing system. Pay only for what you use, with transparent costs visible in every response header.
 
-## Credit System Overview
+## How Credits Work
 
-Credits are consumed based on the complexity and features of your API requests. All responses include billing information in headers.
+Credits are consumed based on request complexity and data returned. **All responses include billing information in headers** so you always know what you're being charged.
 
 <Info>
-**Response Headers**: Every API response includes `X-Credits-Charged`, `X-Credits-Features`, and `X-Billing-Plan` headers so you can track your usage in real-time.
+**Track Every Request** - Monitor `X-Credits-Charged`, `X-Credits-Features`, and `X-Billing-Plan` headers in real-time to understand your usage.
 </Info>
 
-## Pricing Models
+## Pricing Models by Endpoint
 
 ### 🔍 Search & Discovery
 
-**Creator Search** - Find influencers with AI-powered search
-- **Base cost**: 2.0 credits per creator returned
-- **Detailed mode**: +0.05 credits per social account
-- **Example**: 25 creators with detailed profiles = 2.0 × 25 + 0.05 × 50 = 52.5 credits
+**Creator Search** (`/v1/search`) - AI-powered influencer discovery
 
-**Lookalike Discovery** - Find similar creators
-- **Base cost**: 1.0 credit per creator returned  
-- **Detailed mode**: +0.05 credits per social account
-- **Example**: 20 lookalike creators = 1.0 × 20 = 20 credits
+- **Base**: 2.0 credits per creator returned
+- **Detailed mode**: +0.05 credits per social account included
+- **Example**: 25 creators, each with 2 social accounts (detailed) = (25 × 2.0) + (25 × 2 × 0.05) = 50 + 2.5 = **52.5 credits**
 
-### 👤 Creator Data
+```http
+# Example response headers
+X-Credits-Charged: 52.5
+X-Credits-Features: search,detailed,profiles
+X-Billing-Plan: pro
+```
 
-**Creator Profiles** - Get detailed creator information
-- **Basic profile**: 0.1 credits per creator
-- **With social accounts**: +0.01-0.05 credits per social account (lite/detailed)
-- **With email data**: +0.5 credits per creator (Pro tier)
+**Lookalike Discovery** (`/v1/lookalike`) - Find similar creators
 
-**Profile Lookup** - Look up creators by username
+- **Base**: 1.0 credit per creator returned
+- **Detailed mode**: +0.05 credits per social account included
+- **Per seed**: 0.05 credits per seed creator (processing cost)
+- **Example**: 3 seeds, 20 creators with detailed profiles (2 accounts each) = (3 × 0.05) + (20 × 1.0) + (20 × 2 × 0.05) = 0.15 + 20 + 2 = **22.15 credits**
+
+### 👤 Creator & Profile Data
+
+**Creator Profiles** (`/v1/creators`) - Get detailed creator information
+
+- **Base**: 0.1 credits per creator
+- **Social accounts (lite)**: +0.01 credits per account
+- **Social accounts (detailed)**: +0.05 credits per account
+- **Email data**: +0.5 credits per creator (Pro tier only)
+- **Example**: 10 creators with detailed social accounts (3 each) = (10 × 0.1) + (10 × 3 × 0.05) = 1 + 1.5 = **2.5 credits**
+- **With emails**: 2.5 + (10 × 0.5) = **7.5 credits**
+
+**Profile Lookup** (`/v1/profiles`) - Look up by username + platform
+
 - **Lite mode**: 0.01 credits per profile
 - **Detailed mode**: 0.05 credits per profile
+- **Example**: 5 profiles (detailed) = 5 × 0.05 = **0.25 credits**
+
+**Autocomplete** (`/v1/creators/autocomplete`) - Real-time search suggestions
+
+- **Cost**: 0.001 credits per request (flat rate)
+- **Example**: 1,000 autocomplete requests = 1,000 × 0.001 = **1 credit**
+
+<Info>
+Autocomplete is extremely cost-effective - even heavy usage (thousands of requests) costs very little.
+</Info>
 
 ### 📊 Content Analysis
 
-**Post Analysis** - Analyze individual posts
-- **Base cost**: 1.0 credit per post
-- **AI Analysis**: +0.5 credits per post
-- **Brand Safety**: +0.5 credits per post
-- **Example**: 10 posts with AI analysis = 1.0 × 10 + 0.5 × 10 = 15 credits
+**Post Analysis** (`/v1/posts/analyze`) - Analyze individual posts
 
-**Posts by Creator** - Get creator's recent posts
-- **Cost**: 0.01 credits per request
-- **Pagination**: No additional cost for multiple pages
+- **Base**: 1.0 credit per post
+- **AI Analysis** (content topics, sentiment): +0.5 credits per post
+- **Brand Safety**: +0.5 credits per post
+- **Example**: 10 posts with both AI analysis and brand safety = 10 × (1.0 + 0.5 + 0.5) = **20 credits**
+
+```http
+# Example response headers
+X-Credits-Charged: 2.0
+X-Credits-Features: post_analysis,ai_analysis,brand_safety
+```
+
+**Posts by Creator** (`/v1/posts/by-creator`) - Get creator's recent posts
+
+- **Base**: 0.01 credits per post returned
+- **Pagination**: No additional cost
+- **Example**: 50 posts = 50 × 0.01 = **0.5 credits**
+
+<Warning>
+The more posts you request with the `limit` parameter, the more you pay. Use pagination to control costs.
+</Warning>
 
 ### 🛡️ Brand Safety
 
-**Creator Brand Safety** - Analyze creators for brand safety
-- **Cost**: 2.0 credits per creator
-- **Bulk analysis**: Same rate, no discounts
+**Creator Brand Safety** (`/v1/brand-safety/creators`) - Analyze creator for brand safety
 
-**Profile Brand Safety** - Analyze social accounts
-- **Cost**: 0.5 credits per social account
+- **Cost**: 2.0 credits per creator analyzed
+- **Bulk**: Same rate (no bulk discount)
+- **Example**: 5 creators = 5 × 2.0 = **10 credits**
 
-**Post Brand Safety** - Analyze individual posts
-- **Cost**: 0.5 credits per post
+**Profile Brand Safety** (`/v1/brand-safety/profiles`) - Analyze social accounts
 
-### 🔍 Additional Features
+- **Cost**: 2.0 credits per profile analyzed
+- **Example**: 3 profiles = 3 × 2.0 = **6 credits**
 
-**Autocomplete** - Search suggestions
-- **Cost**: 0.001 credits per request
-- **Very cost-effective for real-time search**
+**Post Brand Safety** (`/v1/posts/brand-safety`) - Analyze posts
 
-**Creator Matching** - Match creators to campaigns
+- **Cost**: 0.5 credits per post analyzed
+- **Example**: 10 posts = 10 × 0.5 = **5 credits**
+
+### 🎯 Matching & Scoring
+
+**Creator Matching** (`/v1/match`) - Score creators for campaigns
+
 - **Cost**: 0.1 credits per creator analyzed
+- **Example**: 50 creators = 50 × 0.1 = **5 credits**
 
 ## Billing Plans
 
 ### 🆓 Free Tier
-- **Credits**: 1,000 credits/month
-- **Rate limit**: 1,000 requests/hour
-- **Features**: Basic search, creator profiles, autocomplete
-- **Perfect for**: Testing, small projects, proof of concepts
+
+<CardGroup cols={1}>
+<Card title="Free Tier" icon="gift">
+  **Credits**: 1,000 credits/month
+  
+  **Rate Limit**: 1,000 requests/hour
+  
+  **Features**:
+  - Creator search (AI-powered)
+  - Creator profiles (lite & detailed)
+  - Autocomplete
+  - Lookalike discovery
+  - Basic analytics
+  
+  **Perfect For**: Testing, proof of concepts, small projects
+  
+  **Cost**: Free forever
+</Card>
+</CardGroup>
 
 ### 💼 Pro Tier
-- **Credits**: 10,000+ credits/month
-- **Rate limit**: 10,000 requests/hour
-- **Features**: All features including email data, advanced analytics
-- **Perfect for**: Production applications, agencies, enterprises
+
+<CardGroup cols={1}>
+<Card title="Pro Tier" icon="rocket">
+  **Credits**: 10,000+ credits/month (custom packages available)
+  
+  **Rate Limit**: 10,000 requests/hour
+  
+  **Features**: Everything in Free, plus:
+  - Email discovery (+0.5 credits per creator)
+  - Advanced brand safety analysis
+  - Creator matching
+  - Priority support
+  - Extended rate limits
+  
+  **Perfect For**: Production applications, agencies, growing businesses
+  
+  **Pricing**: Contact [elliot@influship.com](mailto:elliot@influship.com)
+</Card>
+</CardGroup>
 
 ### 🏢 Enterprise
-- **Credits**: Custom volume pricing
-- **Rate limit**: Custom limits
-- **Features**: All features + dedicated support, SLA, custom integrations
-- **Perfect for**: Large-scale operations, white-label solutions
 
-## Cost Optimization Tips
-
-<CardGroup cols={2}>
-<Card title="Use Lite Mode" icon="zap">
-  Start with lite mode for exploration, upgrade to detailed only when needed.
-</Card>
-
-<Card title="Batch Requests" icon="layers">
-  Combine multiple creator lookups into single requests to reduce overhead.
-</Card>
-
-<Card title="Cache Results" icon="database">
-  Cache frequently accessed data to avoid repeated API calls.
-</Card>
-
-<Card title="Filter Early" icon="filter">
-  Use search filters to reduce the number of creators returned.
+<CardGroup cols={1}>
+<Card title="Enterprise" icon="building">
+  **Credits**: Custom volume with tiered pricing
+  
+  **Rate Limit**: Custom (typically 50,000+/hour)
+  
+  **Features**: Everything in Pro, plus:
+  - Dedicated account manager
+  - SLA guarantees (99.9% uptime)
+  - Custom integrations
+  - Webhooks and real-time data
+  - White-label options
+  - Volume discounts
+  
+  **Perfect For**: Large-scale operations, platforms, resellers
+  
+  **Pricing**: Contact [elliot@influship.com](mailto:elliot@influship.com)
 </Card>
 </CardGroup>
 
 ## Real-World Cost Examples
 
-### Small Agency (Monthly)
-- **100 creator searches** (25 creators each): 2.0 × 2,500 = 5,000 credits
-- **500 creator profiles**: 0.1 × 500 = 50 credits
-- **50 post analyses**: 1.0 × 50 = 50 credits
-- **Total**: ~5,100 credits
+### Small Marketing Agency
 
-### Enterprise Campaign
-- **1,000 creator searches** (50 creators each): 2.0 × 50,000 = 100,000 credits
-- **2,000 creator profiles with emails**: 0.1 × 2,000 + 0.5 × 2,000 = 1,200 credits
-- **500 brand safety analyses**: 2.0 × 500 = 1,000 credits
-- **Total**: ~102,200 credits
+**Monthly Usage**:
+- 100 creator searches (25 creators each) = 100 × 25 × 2.0 = **5,000 credits**
+- 500 creator profile lookups (detailed) = 500 × 0.1 = **50 credits**
+- 50 post analyses = 50 × 1.0 = **50 credits**
+- 2,000 autocomplete requests = 2,000 × 0.001 = **2 credits**
+
+**Total**: ~**5,102 credits/month** → Pro Tier recommended
+
+### E-commerce Brand
+
+**Monthly Usage**:
+- 50 creator searches (50 creators each, detailed) = 50 × 50 × 2.0 + (50 × 50 × 2 × 0.05) = 5,000 + 250 = **5,250 credits**
+- 200 creator profiles with emails = 200 × 0.1 + 200 × 0.5 = 20 + 100 = **120 credits**
+- 100 brand safety analyses = 100 × 2.0 = **200 credits**
+- 1,000 autocomplete = **1 credit**
+
+**Total**: ~**5,571 credits/month** → Pro Tier recommended
+
+### Enterprise Platform
+
+**Monthly Usage**:
+- 1,000 searches (100 creators each, detailed) = 1,000 × 100 × 2.0 + (1,000 × 100 × 2 × 0.05) = 200,000 + 10,000 = **210,000 credits**
+- 5,000 creator profiles with emails = 5,000 × 0.6 = **3,000 credits**
+- 500 brand safety analyses = **1,000 credits**
+- 10,000 post analyses = **10,000 credits**
+
+**Total**: ~**224,000 credits/month** → Enterprise with volume discounts
+
+## Cost Optimization Strategies
+
+<CardGroup cols={2}>
+<Card title="Use Lite Mode First" icon="zap">
+  Start with `mode: "lite"` for exploration, upgrade to `detailed` only when needed. Saves 0.04-0.05 credits per social account.
+</Card>
+
+<Card title="Batch Requests" icon="layers">
+  Use batch endpoints (`/v1/creators`, `/v1/profiles`) to process multiple items in one request. Reduces overhead.
+</Card>
+
+<Card title="Cache Aggressively" icon="database">
+  Cache frequently accessed creator data for 24-48 hours. Avoid repeated lookups for the same creators.
+</Card>
+
+<Card title="Filter Early" icon="filter">
+  Use search filters to get fewer, more relevant creators. Better results with lower costs.
+</Card>
+
+<Card title="Smart Pagination" icon="list">
+  Request appropriate `limit` values. Don't request 100 items if you only need 25.
+</Card>
+
+<Card title="Selective Features" icon="toggle-on">
+  Only request AI analysis or brand safety when actually needed. Each feature adds cost.
+</Card>
+</CardGroup>
 
 ## Monitoring Your Usage
 
 ### Response Headers
-Every API response includes usage information:
+
+Every API response includes comprehensive billing information:
 
 ```http
+HTTP/1.1 200 OK
+X-Request-Id: req_7a8b9c0d1e2f3g4h
 X-Credits-Charged: 2.5
-X-Credits-Features: search,detailed
+X-Credits-Features: search,detailed,profiles
 X-Billing-Plan: pro
 RateLimit-Limit: 10000
 RateLimit-Remaining: 9997
 RateLimit-Reset: 1640995200
 ```
 
-### Usage Dashboard
+| Header | Description | Example |
+|--------|-------------|---------|
+| `X-Request-Id` | Unique request identifier for support | `req_7a8b9c0d1e2f3g4h` |
+| `X-Credits-Charged` | Exact credits consumed by this request | `2.5` |
+| `X-Credits-Features` | Features that impacted billing | `search,detailed,profiles` |
+| `X-Billing-Plan` | Your current plan | `free`, `pro`, `enterprise` |
+
+### Track Usage in Code
+
+```javascript
+async function trackAPIUsage(endpoint, options) {
+  const response = await fetch(`https://api.influship.com${endpoint}`, {
+    ...options,
+    headers: {
+      'X-API-Key': process.env.INFLUSHIP_API_KEY,
+      ...options.headers
+    }
+  });
+
+  const creditsCharged = parseFloat(response.headers.get('X-Credits-Charged'));
+  const features = response.headers.get('X-Credits-Features');
+  
+  console.log(`API Usage: ${creditsCharged} credits (${features})`);
+  
+  // Log to analytics
+  analytics.track('api_usage', {
+    endpoint,
+    credits: creditsCharged,
+    features: features.split(','),
+    timestamp: new Date().toISOString()
+  });
+  
+  return response.json();
+}
+```
+
+### Usage Dashboard (Coming Soon)
+
 Monitor your usage in real-time:
-- Current credit balance
+- Current credit balance and burn rate
 - Usage trends and patterns
 - Cost breakdown by endpoint
 - Projected monthly costs
+- Credit alerts and notifications
+
+## Pricing FAQs
+
+<AccordionGroup>
+<Accordion title="What happens if I run out of credits?">
+  Your API requests will return a 402 Payment Required error. Upgrade your plan or purchase additional credits to continue.
+</Accordion>
+
+<Accordion title="Do unused credits roll over?">
+  No, credits are reset monthly on your billing date. Pro and Enterprise plans can discuss custom rollover terms.
+</Accordion>
+
+<Accordion title="Can I get a refund?">
+  Credits are non-refundable. Contact support if you have billing issues or concerns.
+</Accordion>
+
+<Accordion title="Is there a free trial?">
+  Yes! The free tier gives you 1,000 credits/month forever. No credit card required.
+</Accordion>
+
+<Accordion title="How do I upgrade or downgrade?">
+  Contact [elliot@influship.com](mailto:elliot@influship.com) to change your plan.
+</Accordion>
+
+<Accordion title="What currency are credits billed in?">
+  Pricing is in USD. Credit packages and billing are handled in US dollars.
+</Accordion>
+</AccordionGroup>
 
 ## Getting Started
 
 <Steps>
-<Step title="Choose Your Plan">
-  Start with the Free tier to explore the API, then upgrade based on your needs.
+<Step title="Start with Free Tier">
+  Test the API with 1,000 free credits/month. No credit card required.
 </Step>
 
 <Step title="Monitor Usage">
-  Check response headers to understand your credit consumption patterns.
+  Check `X-Credits-Charged` headers to understand your consumption patterns.
 </Step>
 
 <Step title="Optimize Costs">
-  Use lite mode for exploration, detailed mode for final analysis.
+  Use lite mode, caching, and smart filtering to reduce credit usage.
 </Step>
 
 <Step title="Scale Up">
-  Upgrade your plan as your usage grows and you need higher rate limits.
+  Upgrade to Pro or Enterprise when you need more credits and features.
 </Step>
 </Steps>
 
@@ -172,10 +355,18 @@ Monitor your usage in real-time:
 
 <CardGroup cols={2}>
 <Card title="Contact Sales" icon="envelope" href="mailto:elliot@influship.com">
-  Get custom pricing for high-volume usage
+  Custom pricing for high-volume usage
 </Card>
 
 <Card title="View Examples" icon="code" href="/examples">
   See cost-effective implementation patterns
+</Card>
+
+<Card title="Rate Limits" icon="clock" href="/essentials/rate-limits">
+  Understanding rate limits and quotas
+</Card>
+
+<Card title="API Reference" icon="book" href="/api-reference">
+  Complete endpoint documentation
 </Card>
 </CardGroup>

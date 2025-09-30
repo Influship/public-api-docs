@@ -1,40 +1,43 @@
 ---
 title: 'Quickstart'
-description: 'Get up and running with the Influship API in 5 minutes'
+description: 'Get up and running with the Influship API in under 5 minutes'
 ---
 
 # Quickstart
 
-Get started with the Influship API in just a few minutes. This guide will help you make your first API call and understand the basics.
+Get started with the Influship API and make your first successful request in minutes. This guide walks you through the essentials to start finding influencers.
 
 ## Prerequisites
 
 - An API key from [elliot@influship.com](mailto:elliot@influship.com)
-- A tool to make HTTP requests (curl, Postman, or your preferred client)
+- A tool to make HTTP requests (curl, Postman, or code)
 
 ## Step 1: Get Your API Key
 
 <Steps>
 <Step title="Request Access">
-  Email [elliot@influship.com](mailto:elliot@influship.com) to get your API key.
+  Contact [elliot@influship.com](mailto:elliot@influship.com) to receive your API key.
 </Step>
 
 <Step title="Store Securely">
-  Copy your API key and store it as an environment variable:
+  Save your API key as an environment variable:
   ```bash
   export INFLUSHIP_API_KEY="your_api_key_here"
   ```
+  
+  <Warning>
+  Never commit API keys to version control. Always use environment variables or secrets management.
+  </Warning>
 </Step>
 </Steps>
 
-## Step 2: Test the API
+## Step 2: Verify API Access
 
-Start with a simple health check:
+Test your connection with a health check (no authentication required):
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://api.influship.com/health' \
-  -H 'X-API-Key: YOUR_API_KEY'
+curl https://api.influship.com/health
 ```
 </RequestExample>
 
@@ -47,22 +50,35 @@ curl -X GET 'https://api.influship.com/health' \
 ```
 </ResponseExample>
 
-<Check>
-Great! Your API key is working. Now let's find some influencers.
-</Check>
+## Step 3: Test Authentication
 
-## Step 3: Find Your First Influencers
-
-Search for influencers using natural language - this is where the magic happens:
+Verify your API key works correctly:
 
 <RequestExample>
 ```bash cURL
-curl -X POST 'https://api.influship.com/v1/search' \
+curl -X POST https://api.influship.com/v1/search \
+  -H 'X-API-Key: YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "test", "limit": 1}'
+```
+</RequestExample>
+
+<Check>
+✅ If you get results, your API key is working! If you get a 401 error, double-check your API key.
+</Check>
+
+## Step 4: Find Influencers
+
+Now let's use the AI-powered search to find creators:
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.influship.com/v1/search \
   -H 'X-API-Key: YOUR_API_KEY' \
   -H 'Content-Type: application/json' \
   -d '{
-    "query": "fitness influencers with high engagement",
-    "limit": 3
+    "query": "fitness creators with high engagement who post about healthy living",
+    "limit": 5
   }'
 ```
 </RequestExample>
@@ -72,11 +88,14 @@ curl -X POST 'https://api.influship.com/v1/search' \
 {
   "items": [
     {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "name": "Sarah Johnson",
+      "avatar_url": "https://example.com/avatar.jpg",
+      "bio": "Fitness coach and wellness advocate",
       "profiles": [
         {
-          "platform": "Instagram",
+          "id": "prof_123abc",
+          "platform": "instagram",
           "username": "sarahfitness",
           "follower_count": 125000,
           "engagement_rate": 4.5,
@@ -85,38 +104,90 @@ curl -X POST 'https://api.influship.com/v1/search' \
       ],
       "ai_recommendation": {
         "score": 0.92,
-        "explanation": "High engagement rate and consistent fitness content"
+        "explanation": "Strong fitness focus with authentic engagement on health topics"
       }
     }
   ],
-  "filtered_total": 45,
-  "has_more": true
+  "filtered_total": 247,
+  "has_more": true,
+  "next_cursor": "eyJpZCI6NX0="
 }
 ```
 </ResponseExample>
 
 <Check>
-🎉 **Success!** You just found fitness influencers using AI-powered search. Notice how the AI explains why each creator is a good match.
+🎉 **Success!** You just discovered influencers using AI. Notice how the API explains *why* each creator matches your query.
 </Check>
 
-## Step 4: Get Detailed Creator Information
+## Step 5: Get Detailed Creator Information
 
-Now let's get more details about the creators you found:
+Enrich creators with full profile data:
 
 <RequestExample>
 ```bash cURL
-curl -X POST 'https://api.influship.com/v1/creators' \
+curl -X POST https://api.influship.com/v1/creators \
   -H 'X-API-Key: YOUR_API_KEY' \
   -H 'Content-Type: application/json' \
   -d '{
-    "creator_ids": ["123e4567-e89b-12d3-a456-426614174000"],
+    "creator_ids": ["550e8400-e29b-41d4-a716-446655440000"],
+    "mode": "detailed",
     "include_profiles": true,
     "profile_mode": "detailed"
   }'
 ```
 </RequestExample>
 
-## What You Just Accomplished
+<ResponseExample>
+```json Creator Details
+{
+  "creators": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Sarah Johnson",
+      "avatar_url": "https://example.com/avatar.jpg",
+      "bio": "Fitness coach and wellness advocate",
+      "profiles": [
+        {
+          "id": "prof_123abc",
+          "platform": "instagram",
+          "username": "sarahfitness",
+          "follower_count": 125000,
+          "engagement_rate": 4.5,
+          "verified": true,
+          "avg_likes": 5625,
+          "avg_comments": 312,
+          "posts_per_week": 4.2,
+          "avatar_url": "https://instagram.com/avatar.jpg",
+          "external_url": "https://sarahfitness.com"
+        }
+      ]
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}
+```
+</ResponseExample>
+
+## Understanding Costs
+
+Every request includes billing information in response headers:
+
+```http
+X-Credits-Charged: 2.5
+X-Credits-Features: search,detailed
+X-Billing-Plan: free
+RateLimit-Remaining: 997
+```
+
+- **Search**: 2.0 credits per creator + 0.05 credits per social account (detailed mode)
+- **Example**: 5 creators with detailed profiles = 10 + 2.5 = 12.5 credits
+
+<Info>
+The **free tier** includes 1,000 credits/month. See [Pricing](/essentials/pricing) for details.
+</Info>
+
+## What You Accomplished
 
 <CardGroup cols={2}>
 <Card title="✅ AI Search" icon="search">
@@ -124,33 +195,31 @@ curl -X POST 'https://api.influship.com/v1/creators' \
 </Card>
 
 <Card title="✅ Detailed Profiles" icon="user">
-  Retrieved comprehensive creator data
+  Retrieved comprehensive creator and social account data
 </Card>
 
 <Card title="✅ AI Insights" icon="brain">
-  Got AI-powered recommendations and explanations
+  Got AI-powered relevance scores and explanations
 </Card>
 
-<Card title="✅ Real Data" icon="chart-bar">
-  Accessed real engagement rates and follower counts
+<Card title="✅ Real Metrics" icon="chart-bar">
+  Accessed engagement rates and follower counts
 </Card>
 </CardGroup>
 
 ## Next Steps
 
-Now that you've made your first API calls, here's what you can explore:
-
 <CardGroup cols={2}>
-<Card title="Find Similar Creators" icon="users" href="/api-reference/lookalike">
-  Use lookalike discovery to find creators similar to your favorites
+<Card title="Find Similar Creators" icon="users" href="/guides/lookalike-discovery">
+  Use lookalike discovery to find creators similar to your top performers
 </Card>
 
-<Card title="Analyze Content" icon="chart-line" href="/api-reference/analyze-posts">
-  Analyze individual posts for engagement and content insights
+<Card title="Analyze Posts" icon="chart-line" href="/api-reference/posts/analyze">
+  Deep-dive into content performance and engagement
 </Card>
 
-<Card title="Check Brand Safety" icon="shield" href="/api-reference/brand-safety">
-  Ensure creators are brand-safe for your campaigns
+<Card title="Check Brand Safety" icon="shield" href="/api-reference/brand-safety/creators">
+  Ensure creators align with your brand values
 </Card>
 
 <Card title="View All Endpoints" icon="book" href="/api-reference">
@@ -158,22 +227,34 @@ Now that you've made your first API calls, here's what you can explore:
 </Card>
 </CardGroup>
 
-## Common Use Cases
+## Common Workflows
 
 <CardGroup cols={2}>
 <Card title="Campaign Discovery" icon="rocket" href="/guides/campaign-discovery">
-  Complete workflow for finding influencers for marketing campaigns
+  Complete workflow for finding influencers for campaigns
 </Card>
 
 <Card title="Code Examples" icon="code" href="/examples">
   Working examples in JavaScript, Python, and cURL
 </Card>
 
-<Card title="Pricing" icon="dollar-sign" href="/essentials/pricing">
-  Understand credits and billing
+<Card title="Pricing & Credits" icon="dollar-sign" href="/essentials/pricing">
+  Understand the credit system and optimize costs
 </Card>
 
 <Card title="Rate Limits" icon="clock" href="/essentials/rate-limits">
   Learn about rate limits and best practices
+</Card>
+</CardGroup>
+
+## Need Help?
+
+<CardGroup cols={2}>
+<Card title="API Reference" icon="book" href="/api-reference">
+  Complete endpoint documentation
+</Card>
+
+<Card title="Support" icon="envelope" href="mailto:support@influship.com">
+  Email us for help
 </Card>
 </CardGroup>
